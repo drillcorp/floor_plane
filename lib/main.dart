@@ -1,9 +1,13 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:floor_builder/entities/route_node.dart';
+import 'package:floor_builder/entities/wall.dart';
+import 'package:floor_builder/widgets/control_buttons.dart';
+import 'package:floor_builder/widgets/floor_plan_widget.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import 'entities/route_edge.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,82 +20,108 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-final class Room {
-  Room({required this.rect, this.name = 'Room Name', this.doorCoordinates});
-
-  final String name;
-  final Rect rect;
-  final (Offset start, Offset end)? doorCoordinates;
-}
-
 class _MyAppState extends State<MyApp> {
-  int? _currentSelectRect;
-  double _gridSize = 20;
-  bool _isShowGrid = true;
-  bool _isCheckMode = true;
-  bool _isCreateDoor = false;
+  final double _gridSize = 20;
+  late final ControlPanelController _controlPanelController;
+  final List<Wall> _walls = [];
+  final List<RouteEdge> _routeEdges = [];
+  final List<RouteNode> _routeNodes = [];
+  bool createRouteNodes = false;
+  bool createRouteEdges = false;
   Offset? _startPosition;
   Offset? _updatePosition;
-  final List<Room> _rects = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _controlPanelController = ControlPanelController(
+      wallCreateModeHandler: () {
+        setState(() {
+          createRouteNodes = false;
+          createRouteEdges = false;
+        });
+      },
+      routeNodeCreateModeHandler: () {
+        setState(() {
+          createRouteNodes = true;
+          createRouteEdges = false;
+        });
+      },
+      routeEdgeCreateModeHandler: () {
+        setState(() {
+          createRouteEdges = true;
+          createRouteNodes = false;
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    //TODO: dispose controller
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        floatingActionButton: _ControlButtons(
-          isShowGrid: _isShowGrid,
-          onCheckMode: () => setState(() => _isCheckMode = true),
-          isCheckMode: _isCheckMode,
-          onChangeShowingGrid: () => setState(() => _isShowGrid = !_isShowGrid),
-          onClear: () => setState(() => _rects.clear()),
-          removeLastAction: () => setState(() => _rects.removeLast()),
-          onCreateDoor:
-              () => setState(() {
-                _isCreateDoor = true;
-              }),
-          onCreateMode: () => setState(() => _isCheckMode = false),
-        ),
+        floatingActionButton: ControlPanel(controller: _controlPanelController),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         body: InteractiveViewer(
           child: LayoutBuilder(
             builder: (context, constraints) {
               return GestureDetector(
                 supportedDevices: {PointerDeviceKind.mouse},
-                onPanStart:
-                    !_isCheckMode
-                        ? (startDetail) {
-                          final nearest = _findNearestPoint(startDetail.globalPosition, _gridSize);
-                          setState(() => _startPosition = nearest);
-                        }
-                        : null,
-                onPanUpdate:
-                    !_isCheckMode
-                        ? (updateDetail) {
+                onTapDown:
+                    createRouteNodes
+                        ? (detail) {
                           setState(() {
-                            _updatePosition = updateDetail.globalPosition;
+                            final nearestPoint = _findNearestPoint(detail.localPosition);
+                            final rect = Rect.fromCenter(center: nearestPoint, width: 40, height: 40);
+                            _routeNodes.add(RouteNode(rect: rect));
                           });
                         }
                         : null,
-                onPanEnd:
-                    !_isCheckMode
-                        ? (endDetail) {
-                          setState(() {
-                            final nearestEnd = _findNearestPoint(endDetail.globalPosition, _gridSize);
-                            _rects.add(Room(rect: Rect.fromPoints(_startPosition ?? Offset.zero, nearestEnd)));
-                            _startPosition = null;
-                            _updatePosition = null;
-                          });
-                        }
-                        : null,
+                onPanStart: (startDetail) {
+                  final nearest = _findNearestPoint(startDetail.localPosition);
+                  setState(() => _startPosition = nearest);
+                },
+
+                onPanUpdate: (updateDetail) {
+                  setState(() {
+                    _updatePosition = updateDetail.localPosition;
+                  });
+                },
+
+                onPanEnd: (endDetail) {
+                  setState(() {
+                    final nearestEnd = _findNearestPoint(endDetail.localPosition);
+                    if (createRouteEdges) {
+                      _routeEdges.add(RouteEdge(startPoint: _startPosition!, endPoint: nearestEnd));
+                    } else {
+                      _walls.add(Wall(startPoint: _startPosition!, endPoint: nearestEnd));
+                    }
+
+                    _startPosition = null;
+                    _updatePosition = null;
+                  });
+                },
                 child: SizedBox(
                   height: constraints.maxHeight,
                   width: constraints.maxWidth,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (_isShowGrid) _BackgroundGrid(gridSize: _gridSize),
-                      CustomPaint(painter: RectPaint(startPointer: _startPosition, endPointer: _updatePosition)),
-                      ..._rects.mapIndexed((i, item) => RectWidget(title: item.name, rect: item.rect)),
+                      _BackgroundGrid(gridSize: _gridSize),
+                      if (_startPosition != null && _updatePosition != null)
+                        if (createRouteEdges)
+                          CustomPaint(
+                            painter: RouteEdgePainter(startPoint: _startPosition!, endPoint: _updatePosition!),
+                          )
+                        else
+                          CustomPaint(painter: LinePainter(startPoint: _startPosition!, endPoint: _updatePosition!)),
+                      FloorPlan(walls: _walls, routeNodes: _routeNodes, routeEdges: _routeEdges),
                     ],
                   ),
                 ),
@@ -103,108 +133,63 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Offset _findNearestPoint(Offset currentPoint, double gridSize) {
-    final dx = (currentPoint.dx / gridSize).round() * gridSize;
-    final dy = (currentPoint.dy / gridSize).round() * gridSize;
+  Offset _findNearestPoint(Offset currentPoint) {
+    final dx = (currentPoint.dx / _gridSize).round() * _gridSize;
+    final dy = (currentPoint.dy / _gridSize).round() * _gridSize;
     return Offset(dx, dy);
   }
 }
 
-class DoorWidget extends StatelessWidget {
-  const DoorWidget(this.start, this.end);
+final class RouteEdgePainter extends CustomPainter {
+  RouteEdgePainter({required this.startPoint, required this.endPoint});
 
-  final Offset start, end;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _DoorWidgetPainter(start, end));
-  }
-}
-
-final class _DoorWidgetPainter extends CustomPainter {
-  _DoorWidgetPainter(this.start, this.end);
-
-  final Offset start, end;
+  final Offset startPoint;
+  final Offset endPoint;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.white
-          ..strokeWidth = 2;
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 20
+          ..color = Colors.red.withAlpha(100)
+          ..style = PaintingStyle.stroke;
 
-    canvas.drawLine(start, end, paint);
+    final path = Path();
+    path.moveTo(startPoint.dx, startPoint.dy);
+    path.lineTo(endPoint.dx, endPoint.dy);
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(RouteEdgePainter oldDelegate) =>
+      startPoint != oldDelegate.startPoint || endPoint != oldDelegate.endPoint;
 }
 
-class RectWidget extends StatelessWidget {
-  const RectWidget({
-    required this.title,
-    required this.rect,
-    this.isSelect = false,
-    this.onTap,
-    this.doorPoints,
-    super.key,
-  });
+final class LinePainter extends CustomPainter {
+  LinePainter({required this.startPoint, required this.endPoint});
 
-  final String title;
-  final Rect rect;
-  final bool isSelect;
-  final VoidCallback? onTap;
-  final (Offset start, Offset end)? doorPoints;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: rect.size.width,
-      height: rect.size.height,
-      child: CustomPaint(
-        painter: RectPaint(
-          title: title,
-          startPointer: rect.topLeft,
-          endPointer: rect.bottomRight,
-          doorPoints: doorPoints,
-        ),
-      ),
-    );
-  }
-}
-
-final class RectPaint extends CustomPainter {
-  RectPaint({this.startPointer, this.endPointer, this.doorPoints, this.title = ''});
-
-  final Offset? startPointer;
-  final Offset? endPointer;
-  final String title;
-  final (Offset start, Offset end)? doorPoints;
+  final Offset startPoint;
+  final Offset endPoint;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (startPointer != null && endPointer != null) {
-      final paint =
-          Paint()
-            ..strokeCap = StrokeCap.round
-            ..strokeWidth = 2
-            ..color = Colors.black
-            ..style = PaintingStyle.stroke;
-      final rect = Rect.fromPoints(startPointer!, endPointer!);
-      canvas.drawRect(rect, paint);
-    }
-    if (doorPoints case (Offset start, Offset end)) {
-      final paint =
-          Paint()
-            ..strokeWidth = 2
-            ..color = Colors.white;
-      canvas.drawLine(start, end, paint);
-    }
+    final paint =
+        Paint()
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 2
+          ..color = Colors.black
+          ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    path.moveTo(startPoint.dx, startPoint.dy);
+    path.lineTo(endPoint.dx, endPoint.dy);
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(RectPaint oldDelegate) =>
-      startPointer != oldDelegate.startPointer || endPointer != oldDelegate.endPointer; //TODO:
+  bool shouldRepaint(LinePainter oldDelegate) =>
+      startPoint != oldDelegate.startPoint || endPoint != oldDelegate.endPoint;
 }
 
 class _BackgroundGrid extends StatelessWidget {
@@ -240,50 +225,4 @@ final class _BackgroundGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _ControlButtons extends StatelessWidget {
-  const _ControlButtons({
-    required this.onCreateDoor,
-    required this.onCheckMode,
-    required this.onClear,
-    required this.removeLastAction,
-    required this.onChangeShowingGrid,
-    required this.onCreateMode,
-    this.isShowGrid = false,
-    this.isCheckMode = true,
-    this.isDoorCreate = false,
-  });
-
-  final VoidCallback onCreateDoor;
-  final VoidCallback onCreateMode;
-  final VoidCallback onCheckMode;
-  final VoidCallback onClear;
-  final VoidCallback onChangeShowingGrid;
-  final VoidCallback removeLastAction;
-  final bool isShowGrid, isCheckMode, isDoorCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 8,
-      children: [
-        IconButton(
-          color: isCheckMode ? Colors.blueAccent : Colors.black,
-          onPressed: onCheckMode,
-          icon: Icon(CupertinoIcons.arrow_up_left),
-        ),
-        IconButton(
-          color: !isCheckMode ? Colors.blueAccent : Colors.black,
-          onPressed: onCreateMode,
-          icon: Icon(Icons.rectangle_outlined),
-        ),
-        IconButton(onPressed: onCreateDoor, icon: Icon(Icons.data_array_sharp)),
-        IconButton(onPressed: onChangeShowingGrid, icon: Icon(isShowGrid ? Icons.layers : Icons.layers_outlined)),
-        IconButton(onPressed: removeLastAction, icon: Icon(CupertinoIcons.arrow_counterclockwise)),
-        IconButton(onPressed: onClear, icon: Icon(Icons.clear)),
-      ],
-    );
-  }
 }
