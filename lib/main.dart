@@ -1,122 +1,289 @@
+import 'dart:math';
+
+import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+final class Room {
+  Room({required this.rect, this.name = 'Room Name', this.doorCoordinates});
+
+  final String name;
+  final Rect rect;
+  final (Offset start, Offset end)? doorCoordinates;
+}
+
+class _MyAppState extends State<MyApp> {
+  int? _currentSelectRect;
+  double _gridSize = 20;
+  bool _isShowGrid = true;
+  bool _isCheckMode = true;
+  bool _isCreateDoor = false;
+  Offset? _startPosition;
+  Offset? _updatePosition;
+  final List<Room> _rects = [];
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      home: Scaffold(
+        floatingActionButton: _ControlButtons(
+          isShowGrid: _isShowGrid,
+          onCheckMode: () => setState(() => _isCheckMode = true),
+          isCheckMode: _isCheckMode,
+          onChangeShowingGrid: () => setState(() => _isShowGrid = !_isShowGrid),
+          onClear: () => setState(() => _rects.clear()),
+          removeLastAction: () => setState(() => _rects.removeLast()),
+          onCreateDoor:
+              () => setState(() {
+                _isCreateDoor = true;
+              }),
+          onCreateMode: () => setState(() => _isCheckMode = false),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+        body: InteractiveViewer(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return GestureDetector(
+                supportedDevices: {PointerDeviceKind.mouse},
+                onPanStart:
+                    !_isCheckMode
+                        ? (startDetail) {
+                          final nearest = _findNearestPoint(startDetail.globalPosition, _gridSize);
+                          setState(() => _startPosition = nearest);
+                        }
+                        : null,
+                onPanUpdate:
+                    !_isCheckMode
+                        ? (updateDetail) {
+                          setState(() {
+                            _updatePosition = updateDetail.globalPosition;
+                          });
+                        }
+                        : null,
+                onPanEnd:
+                    !_isCheckMode
+                        ? (endDetail) {
+                          setState(() {
+                            final nearestEnd = _findNearestPoint(endDetail.globalPosition, _gridSize);
+                            _rects.add(Room(rect: Rect.fromPoints(_startPosition ?? Offset.zero, nearestEnd)));
+                            _startPosition = null;
+                            _updatePosition = null;
+                          });
+                        }
+                        : null,
+                child: SizedBox(
+                  height: constraints.maxHeight,
+                  width: constraints.maxWidth,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (_isShowGrid) _BackgroundGrid(gridSize: _gridSize),
+                      CustomPaint(painter: RectPaint(startPointer: _startPosition, endPointer: _updatePosition)),
+                      ..._rects.mapIndexed((i, item) => RectWidget(title: item.name, rect: item.rect)),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+
+  Offset _findNearestPoint(Offset currentPoint, double gridSize) {
+    final dx = (currentPoint.dx / gridSize).round() * gridSize;
+    final dy = (currentPoint.dy / gridSize).round() * gridSize;
+    return Offset(dx, dy);
+  }
+}
+
+class DoorWidget extends StatelessWidget {
+  const DoorWidget(this.start, this.end);
+
+  final Offset start, end;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _DoorWidgetPainter(start, end));
+  }
+}
+
+final class _DoorWidgetPainter extends CustomPainter {
+  _DoorWidgetPainter(this.start, this.end);
+
+  final Offset start, end;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.white
+          ..strokeWidth = 2;
+
+    canvas.drawLine(start, end, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class RectWidget extends StatelessWidget {
+  const RectWidget({
+    required this.title,
+    required this.rect,
+    this.isSelect = false,
+    this.onTap,
+    this.doorPoints,
+    super.key,
+  });
+
+  final String title;
+  final Rect rect;
+  final bool isSelect;
+  final VoidCallback? onTap;
+  final (Offset start, Offset end)? doorPoints;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: rect.size.width,
+      height: rect.size.height,
+      child: CustomPaint(
+        painter: RectPaint(
+          title: title,
+          startPointer: rect.topLeft,
+          endPointer: rect.bottomRight,
+          doorPoints: doorPoints,
+        ),
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+final class RectPaint extends CustomPainter {
+  RectPaint({this.startPointer, this.endPointer, this.doorPoints, this.title = ''});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
+  final Offset? startPointer;
+  final Offset? endPointer;
   final String title;
+  final (Offset start, Offset end)? doorPoints;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  void paint(Canvas canvas, Size size) {
+    if (startPointer != null && endPointer != null) {
+      final paint =
+          Paint()
+            ..strokeCap = StrokeCap.round
+            ..strokeWidth = 2
+            ..color = Colors.black
+            ..style = PaintingStyle.stroke;
+      final rect = Rect.fromPoints(startPointer!, endPointer!);
+      canvas.drawRect(rect, paint);
+    }
+    if (doorPoints case (Offset start, Offset end)) {
+      final paint =
+          Paint()
+            ..strokeWidth = 2
+            ..color = Colors.white;
+      canvas.drawLine(start, end, paint);
+    }
   }
 
   @override
+  bool shouldRepaint(RectPaint oldDelegate) =>
+      startPointer != oldDelegate.startPointer || endPointer != oldDelegate.endPointer; //TODO:
+}
+
+class _BackgroundGrid extends StatelessWidget {
+  const _BackgroundGrid({required this.gridSize});
+
+  final double gridSize;
+
+  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    return CustomPaint(painter: _BackgroundGridPainter(gridSize));
+  }
+}
+
+final class _BackgroundGridPainter extends CustomPainter {
+  _BackgroundGridPainter(this.gridSize);
+
+  final double gridSize;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint gridPain =
+        Paint()
+          ..strokeWidth = 1
+          ..color = Colors.black12;
+
+    final maxDimension = max(size.height, size.width);
+
+    for (double i = 0; i < maxDimension; i += gridSize) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPain);
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPain);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ControlButtons extends StatelessWidget {
+  const _ControlButtons({
+    required this.onCreateDoor,
+    required this.onCheckMode,
+    required this.onClear,
+    required this.removeLastAction,
+    required this.onChangeShowingGrid,
+    required this.onCreateMode,
+    this.isShowGrid = false,
+    this.isCheckMode = true,
+    this.isDoorCreate = false,
+  });
+
+  final VoidCallback onCreateDoor;
+  final VoidCallback onCreateMode;
+  final VoidCallback onCheckMode;
+  final VoidCallback onClear;
+  final VoidCallback onChangeShowingGrid;
+  final VoidCallback removeLastAction;
+  final bool isShowGrid, isCheckMode, isDoorCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 8,
+      children: [
+        IconButton(
+          color: isCheckMode ? Colors.blueAccent : Colors.black,
+          onPressed: onCheckMode,
+          icon: Icon(CupertinoIcons.arrow_up_left),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        IconButton(
+          color: !isCheckMode ? Colors.blueAccent : Colors.black,
+          onPressed: onCreateMode,
+          icon: Icon(Icons.rectangle_outlined),
+        ),
+        IconButton(onPressed: onCreateDoor, icon: Icon(Icons.data_array_sharp)),
+        IconButton(onPressed: onChangeShowingGrid, icon: Icon(isShowGrid ? Icons.layers : Icons.layers_outlined)),
+        IconButton(onPressed: removeLastAction, icon: Icon(CupertinoIcons.arrow_counterclockwise)),
+        IconButton(onPressed: onClear, icon: Icon(Icons.clear)),
+      ],
     );
   }
 }
