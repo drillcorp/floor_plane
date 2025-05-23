@@ -1,11 +1,9 @@
-import 'package:floor_builder/entities/route_edge.dart';
 import 'package:floor_builder/entities/route_node.dart';
 import 'package:floor_builder/entities/wall.dart';
 import 'package:flutter/material.dart';
 
 class FloorPlan extends StatefulWidget {
   const FloorPlan({
-    this.routeEdges = const [],
     this.routeNodes = const [],
     required this.walls,
     this.color = Colors.black,
@@ -17,7 +15,6 @@ class FloorPlan extends StatefulWidget {
   final Color color;
   final List<Wall> walls;
   final List<RouteNode> routeNodes;
-  final List<RouteEdge> routeEdges;
 
   @override
   State<FloorPlan> createState() => _FloorPlanState();
@@ -51,7 +48,6 @@ class _FloorPlanState extends State<FloorPlan> with SingleTickerProviderStateMix
             color: widget.color,
             walls: widget.walls,
             nodes: widget.routeNodes,
-            edges: widget.routeEdges,
           ),
         );
       },
@@ -60,50 +56,33 @@ class _FloorPlanState extends State<FloorPlan> with SingleTickerProviderStateMix
 }
 
 final class _FloorPlanPainter extends CustomPainter {
-  const _FloorPlanPainter({
-    required this.edges,
-    required this.nodes,
-    required this.walls,
-    required this.color,
-    required this.strokeWidth,
-  });
+  const _FloorPlanPainter({required this.nodes, required this.walls, required this.color, required this.strokeWidth});
 
   final double strokeWidth;
   final Color color;
   final List<Wall> walls;
   final List<RouteNode> nodes;
-  final List<RouteEdge> edges;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paintRouteEdge =
-        Paint()
-          ..color = Colors.red.withAlpha(100)
-          ..style = PaintingStyle.fill
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = 20;
+    final paintRouteEdge = Paint()
+      ..color = Colors.red.withAlpha(150)
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 10;
 
-    final paintRouteNode =
-        Paint()
-          ..color = Colors.green.withAlpha(100)
-          ..style = PaintingStyle.fill;
+    final paintRouteNode = Paint()
+      ..color = Colors.blue.withAlpha(100)
+      ..style = PaintingStyle.fill;
 
-    final paintWall =
-        Paint()
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round
-          ..style = PaintingStyle.stroke
-          ..color = color;
-
-    for (final routeEdge in edges) {
-      final path = Path();
-      path.moveTo(routeEdge.startPoint.dx, routeEdge.startPoint.dy);
-      path.lineTo(routeEdge.endPoint.dx, routeEdge.endPoint.dy);
-      canvas.drawLine(routeEdge.startPoint, routeEdge.endPoint, paintRouteEdge);
-    }
+    final paintWall = Paint()
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke
+      ..color = color;
 
     for (final routeNode in nodes) {
-      final rect = routeNode.rect;
+      final rect = Rect.fromCenter(center: routeNode.location, width: 20, height: 20);
       canvas.drawRect(rect, paintRouteNode);
     }
 

@@ -1,18 +1,23 @@
-import 'package:floor_builder/entities/route_edge.dart';
 import 'package:flutter/cupertino.dart';
 
 class RouteNode {
-  RouteNode({required this.rect, this.edges = const []});
+  RouteNode({required this.id, required this.location, Set<RouteNode>? neighbors}) : neighbors = neighbors ?? {};
 
-  final Rect rect;
-  final List<RouteEdge> edges;
-
-  @override
-  int get hashCode => Object.hashAll([rect, ...edges]);
+  final String id;
+  final Offset location;
+  final Set<RouteNode> neighbors;
 
   @override
-  bool operator ==(Object other) => other is RouteNode && rect == other.rect && edges == other.edges;
+  int get hashCode => Object.hashAll([id, location]);
 
-  RouteNode copyWith({Rect? rect, List<RouteEdge>? edges}) =>
-      RouteNode(rect: rect ?? this.rect, edges: edges ?? this.edges);
+  @override
+  bool operator ==(Object other) =>
+      other is RouteNode && location == other.location && id == other.id && neighbors == other.neighbors;
+
+  RouteNode copyWith({Offset? location, Set<RouteNode>? neighbors}) =>
+      RouteNode(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
+
+  void verticalAxisNeighbors((RouteNode? top, RouteNode? bottom) neighbors) {}
+
+  void horizontalAxisNeighbors((RouteNode? left, RouteNode? right) neighbors) {}
 }
