@@ -87,9 +87,10 @@ final class _FloorPlanPainter extends CustomPainter {
     }
 
     for (final wall in walls) {
+      if (wall.points.isEmpty) continue;
       final path = Path();
-      path.moveTo(wall.startPoint.dx, wall.startPoint.dy);
-      path.lineTo(wall.endPoint.dx, wall.endPoint.dy);
+      path.moveTo(wall.points.first.dx, wall.points.first.dy);
+      path.lineTo(wall.points.last.dx, wall.points.last.dy);
       canvas.drawPath(path, paintWall);
     }
   }

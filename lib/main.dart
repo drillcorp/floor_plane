@@ -79,6 +79,22 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                print('create');
+                final start = _routeNodes.first;
+                final end = _routeNodes.last;
+                final aStar = AStar(start: start, end: end);
+                final routePath = aStar.calculateRoute();
+                print(routePath);
+                setState(() => _routePath = routePath);
+              },
+              child: Center(child: Text('Create path')),
+            ),
+          ],
+        ),
         floatingActionButton: ControlPanel(controller: _controlPanelController),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         body: InteractiveViewer(
@@ -107,7 +123,22 @@ class _MyAppState extends State<MyApp> {
                     if (createRouteEdges) {
                       final node = _findNodeInThisPoint(_startPosition!) ?? _findNodeInThisPoint(nearestEnd);
                     } else {
-                      _walls.add(Wall(startPoint: _startPosition!, endPoint: nearestEnd));
+                      print(_startPosition!);
+                      print(nearestEnd);
+                      if (_startPosition?.dy == nearestEnd.dy) {
+                        final minDx = min(_startPosition!.dx, nearestEnd.dx);
+                        final maxDx = max(_startPosition!.dx, nearestEnd.dx);
+                        _walls.add(
+                          Wall([for (double dx = minDx; dx <= maxDx; dx += _gridSize) Offset(dx, nearestEnd.dy)]),
+                        );
+                      }
+                      if (_startPosition?.dx == nearestEnd.dx) {
+                        final minDy = min(_startPosition!.dy, nearestEnd.dy);
+                        final maxDx = max(_startPosition!.dy, nearestEnd.dy);
+                        _walls.add(
+                          Wall([for (double dy = minDy; dy <= maxDx; dy += _gridSize) Offset(nearestEnd.dx, dy)]),
+                        );
+                      }
                     }
 
                     _startPosition = null;
@@ -132,22 +163,6 @@ class _MyAppState extends State<MyApp> {
                           ),
                       FloorPlan(walls: _walls, routeNodes: _routeNodes.toList()),
                       if (_routePath.isNotEmpty) PathPainter(path: _routePath),
-                      Positioned(
-                        top: 50,
-                        right: 50,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            print('create');
-                            final start = _routeNodes.first;
-                            final end = _routeNodes.last;
-                            final aStar = AStar(start: start, end: end);
-                            final routePath = aStar.calculateRoute();
-                            print(routePath);
-                            setState(() => _routePath = routePath);
-                          },
-                          child: Center(child: Text('Create path')),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -161,56 +176,89 @@ class _MyAppState extends State<MyApp> {
 
   void _createRouteNode(TapDownDetails details) {
     final nearestPoint = _findNearestPoint(details.localPosition);
-    //TODO:
-    print(nearestPoint);
     final node = RouteNode(location: nearestPoint, id: Uuid().v4());
-    final horizontals = _findConnectedOnHorizontal(node.location);
-    final verticals = _findConnectedOnVertical(node.location);
+    final horizontals = _findHorizontalNeighbors(node.location);
+    final verticals = _findVerticalVerticals(node.location);
     node.updateNeighbors(horizontals);
     node.updateNeighbors(verticals);
     setState(() => _routeNodes.add(node));
   }
 
-  (RouteNode? left, RouteNode? right) _findConnectedOnHorizontal(Offset startPoint) {
-    RouteNode? left, right;
-
-    double leftDirectionCount = startPoint.dx;
-    double rightDirectionCount = startPoint.dx;
-    while (rightDirectionCount <= _sceneWidth && leftDirectionCount >= 0) {
-      final rightPoint = Offset(rightDirectionCount, startPoint.dy);
-      final leftPoint = Offset(leftDirectionCount, startPoint.dy);
-
-      right ??= _findNodeInThisPoint(rightPoint);
-      left ??= _findNodeInThisPoint(leftPoint);
-
-      if (right != null && left != null) break;
-
-      rightDirectionCount += _gridSize;
-      leftDirectionCount -= _gridSize;
-    }
-
-    return (left, right);
+  (RouteNode? left, RouteNode? right) _findHorizontalNeighbors(Offset startPoint) {
+    return (_findLeftNeighbor(startPoint), _findRightNeighbor(startPoint));
   }
 
-  (RouteNode? top, RouteNode? bottom) _findConnectedOnVertical(Offset startPoint) {
-    RouteNode? top, bottom;
+  RouteNode? _findRightNeighbor(Offset startPoint) {
+    double rightDirectionCount = startPoint.dx;
+    while (rightDirectionCount <= _sceneWidth) {
+      final rightPoint = Offset(rightDirectionCount, startPoint.dy);
+      final rightObstacle = _pointsContainsWall(rightPoint);
+      if (rightObstacle) return null;
+      final result = _findNodeInThisPoint(rightPoint);
+      if (result case RouteNode neighbor) {
+        return neighbor;
+      }
+      rightDirectionCount += _gridSize;
+    }
+    return null;
+  }
 
+  RouteNode? _findLeftNeighbor(Offset startPoint) {
+    double leftDirectionCount = startPoint.dx;
+    while (leftDirectionCount >= 0) {
+      final leftPoint = Offset(leftDirectionCount, startPoint.dy);
+      final leftObstacle = _pointsContainsWall(leftPoint);
+      if (leftObstacle) return null;
+      final result = _findNodeInThisPoint(leftPoint);
+      if (result case RouteNode neighbor) {
+        return neighbor;
+      }
+      leftDirectionCount -= _gridSize;
+    }
+    return null;
+  }
+
+  (RouteNode? top, RouteNode? bottom) _findVerticalVerticals(Offset startPoint) {
+    return (_findTopNeighbor(startPoint), _findBottomNeighbor(startPoint));
+  }
+
+  RouteNode? _findTopNeighbor(Offset startPoint) {
     double topDirectionCount = startPoint.dy;
-    double bottomDirectionCount = startPoint.dy;
-    while (bottomDirectionCount <= _sceneHeight && topDirectionCount >= 0) {
+    while (topDirectionCount >= 0) {
       final topPoint = Offset(startPoint.dx, topDirectionCount);
-      final bottomPoint = Offset(startPoint.dx, bottomDirectionCount);
-
-      top ??= _findNodeInThisPoint(topPoint);
-      bottom ??= _findNodeInThisPoint(bottomPoint);
-
-      if (top != null && bottom != null) break;
-
-      bottomDirectionCount += _gridSize;
+      final topObstacle = _pointsContainsWall(topPoint);
+      if (topObstacle) return null;
+      final result = _findNodeInThisPoint(topPoint);
+      if (result case RouteNode neighbor) {
+        return neighbor;
+      }
       topDirectionCount -= _gridSize;
     }
+    return null;
+  }
 
-    return (top, bottom);
+  RouteNode? _findBottomNeighbor(Offset startPoint) {
+    double bottomDirectionCount = startPoint.dy;
+    while (bottomDirectionCount <= _sceneHeight) {
+      final bottomPoint = Offset(startPoint.dx, bottomDirectionCount);
+      final topObstacle = _pointsContainsWall(bottomPoint);
+      if (topObstacle) return null;
+      final result = _findNodeInThisPoint(bottomPoint);
+      if (result case RouteNode neighbor) {
+        return neighbor;
+      }
+      bottomDirectionCount += _gridSize;
+    }
+    return null;
+  }
+
+  bool _pointsContainsWall(Offset currentPoint) {
+    for (final wall in _walls) {
+      for (final point in wall.points) {
+        if (currentPoint == point) return true;
+      }
+    }
+    return false;
   }
 
   Offset _findNearestPoint(Offset currentPoint) {

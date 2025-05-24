@@ -1,17 +1,15 @@
 import 'dart:ui';
 
 class Wall {
-  Wall({required this.startPoint, required this.endPoint});
+  Wall(this.points);
 
-  final Offset startPoint;
-  final Offset endPoint;
-
-  @override
-  int get hashCode => Object.hashAll([startPoint, endPoint]);
+  List<Offset> points;
 
   @override
-  bool operator ==(Object other) => other is Wall && startPoint == other.startPoint && endPoint == other.endPoint;
+  int get hashCode => Object.hashAll([points]);
 
-  Wall copyWith({Offset? startPoint, Offset? endPoint}) =>
-      Wall(startPoint: startPoint ?? this.startPoint, endPoint: endPoint ?? this.endPoint);
+  @override
+  bool operator ==(Object other) => other is Wall && points == other.points;
+
+  Wall copyWith({List<Offset>? points}) => Wall(points ?? this.points);
 }

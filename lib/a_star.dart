@@ -24,6 +24,7 @@ final class AStar {
     openSet.add(start);
 
     while (openSet.isNotEmpty) {
+      print('AStar');
       final current = openSet.removeFirst();
 
       if (current == end) {
