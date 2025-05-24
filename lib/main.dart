@@ -34,6 +34,7 @@ class _MyAppState extends State<MyApp> {
   Offset? _startPosition;
   Offset? _updatePosition;
 
+  //TODO:
   List<Offset> _routePath = [];
 
   @override
@@ -56,6 +57,13 @@ class _MyAppState extends State<MyApp> {
         setState(() {
           createRouteEdges = true;
           createRouteNodes = false;
+        });
+      },
+      clearHandler: () {
+        setState(() {
+          _walls.clear();
+          _routeNodes.clear();
+          _routePath.clear();
         });
       },
     );
@@ -158,11 +166,12 @@ class _MyAppState extends State<MyApp> {
     final node = RouteNode(location: nearestPoint, id: Uuid().v4());
     final horizontals = _findConnectedOnHorizontal(node.location);
     final verticals = _findConnectedOnVertical(node.location);
-    final nodeWithConnections = _updateNodeConnections(node: node, verticals: verticals, horizontals: horizontals);
-    setState(() => _routeNodes.add(nodeWithConnections));
+    node.updateNeighbors(horizontals);
+    node.updateNeighbors(verticals);
+    setState(() => _routeNodes.add(node));
   }
 
-  ({RouteNode? left, RouteNode? right}) _findConnectedOnHorizontal(Offset startPoint) {
+  (RouteNode? left, RouteNode? right) _findConnectedOnHorizontal(Offset startPoint) {
     RouteNode? left, right;
 
     double leftDirectionCount = startPoint.dx;
@@ -180,10 +189,10 @@ class _MyAppState extends State<MyApp> {
       leftDirectionCount -= _gridSize;
     }
 
-    return (left: left, right: right);
+    return (left, right);
   }
 
-  ({RouteNode? top, RouteNode? bottom}) _findConnectedOnVertical(Offset startPoint) {
+  (RouteNode? top, RouteNode? bottom) _findConnectedOnVertical(Offset startPoint) {
     RouteNode? top, bottom;
 
     double topDirectionCount = startPoint.dy;
@@ -201,39 +210,7 @@ class _MyAppState extends State<MyApp> {
       topDirectionCount -= _gridSize;
     }
 
-    return (top: top, bottom: bottom);
-  }
-
-  RouteNode _updateNodeConnections({
-    required RouteNode node,
-    required ({RouteNode? top, RouteNode? bottom}) verticals,
-    required ({RouteNode? left, RouteNode? right}) horizontals,
-  }) {
-    if (verticals case (:final RouteNode top, :final RouteNode bottom)) {
-      top.neighbors.remove(bottom);
-      top.neighbors.add(node);
-      bottom.neighbors.remove(top);
-      bottom.neighbors.add(top);
-      node.neighbors.addAll([top, bottom]);
-    } else {
-      node.neighbors.addAll([?verticals.top, ?verticals.bottom]);
-      verticals.top?.neighbors.add(node);
-      verticals.bottom?.neighbors.add(node);
-    }
-
-    if (horizontals case (:final RouteNode left, :final RouteNode right)) {
-      left.neighbors.remove(right);
-      left.neighbors.add(node);
-      right.neighbors.remove(left);
-      right.neighbors.add(left);
-      node.neighbors.addAll([left, left]);
-    } else {
-      node.neighbors.addAll([?horizontals.right, ?horizontals.left]);
-      horizontals.right?.neighbors.add(node);
-      horizontals.left?.neighbors.add(node);
-    }
-
-    return node;
+    return (top, bottom);
   }
 
   Offset _findNearestPoint(Offset currentPoint) {

@@ -27,7 +27,7 @@ class ControlPanel extends StatelessWidget {
         IconButton(onPressed: () {}, icon: Icon(Icons.data_array_sharp)), //TODO: ставить двери4
         IconButton(onPressed: () {}, icon: Icon(Icons.layers)), //показ сетки
         IconButton(onPressed: () {}, icon: Icon(CupertinoIcons.arrow_counterclockwise)), //шаг назад
-        IconButton(onPressed: () {}, icon: Icon(Icons.clear)), //отчистить все
+        IconButton(onPressed: controller.clearHandler, icon: Icon(Icons.clear)), //отчистить все
       ],
     );
   }
@@ -38,11 +38,13 @@ class ControlPanelController extends Listenable {
     required this.routeEdgeCreateModeHandler,
     required this.wallCreateModeHandler,
     required this.routeNodeCreateModeHandler,
+    required this.clearHandler,
   });
 
   final VoidCallback wallCreateModeHandler;
   final VoidCallback routeNodeCreateModeHandler;
   final VoidCallback routeEdgeCreateModeHandler;
+  final VoidCallback clearHandler;
 
   @override
   void addListener(VoidCallback listener) {

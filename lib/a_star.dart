@@ -8,6 +8,7 @@ final class AStar {
 
   final RouteNode start, end;
 
+  //Manhetten heuristic
   double _heuristic(Offset a, Offset b) => (a.dx - b.dx).abs() + (a.dy - b.dy).abs();
 
   List<Offset> calculateRoute() {

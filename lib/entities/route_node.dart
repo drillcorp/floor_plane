@@ -17,7 +17,26 @@ class RouteNode {
   RouteNode copyWith({Offset? location, Set<RouteNode>? neighbors}) =>
       RouteNode(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
 
-  void verticalAxisNeighbors((RouteNode? top, RouteNode? bottom) neighbors) {}
+  void updateNeighbors((RouteNode? first, RouteNode? second) neighbors) {
+    if (neighbors case (final RouteNode first, final RouteNode second)) {
+      first.neighbors.remove(second);
+      first.neighbors.add(this);
+      second.neighbors.remove(first);
+      second.neighbors.add(first);
+      this.neighbors.addAll([first, second]);
+      return;
+    }
 
-  void horizontalAxisNeighbors((RouteNode? left, RouteNode? right) neighbors) {}
+    if (neighbors.$1 != null) {
+      this.neighbors.add(neighbors.$1!);
+      neighbors.$1?.neighbors.add(this);
+      return;
+    }
+
+    if (neighbors.$2 != null) {
+      this.neighbors.add(neighbors.$2!);
+      neighbors.$2?.neighbors.add(this);
+      return;
+    }
+  }
 }
