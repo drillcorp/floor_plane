@@ -1,10 +1,27 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class ControlPanel extends StatelessWidget {
+typedef FloorBuilderModeListener = void Function(FloorBuilderMode mode);
+
+enum FloorBuilderMode { showing, createRooms, createWalls, createDoor, addNode }
+
+class ControlPanel extends StatefulWidget {
   const ControlPanel({super.key, required this.controller});
 
   final ControlPanelController controller;
+
+  @override
+  State<ControlPanel> createState() => _ControlPanelState();
+}
+
+class _ControlPanelState extends State<ControlPanel> {
+  FloorBuilderMode _currentMode = FloorBuilderMode.showing;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.modeListener?.call(_currentMode);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,47 +29,54 @@ class ControlPanel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: 8,
       children: [
-        IconButton(onPressed: () {}, icon: Icon(Icons.mouse)), //TODO: это будет просто просмотр
         IconButton(
-          //TODO: туту будут рисоваться стены
-          onPressed: controller.wallCreateModeHandler,
+          color: _currentMode == FloorBuilderMode.showing ? Colors.blueAccent : null,
+          onPressed: () => setState(() => _currentMode = FloorBuilderMode.showing),
+          icon: Icon(Icons.mouse),
+        ),
+        IconButton(
+          color: _currentMode == FloorBuilderMode.addNode ? Colors.blueAccent : null,
+          onPressed: () {
+            setState(() => _currentMode = FloorBuilderMode.addNode);
+            widget.controller.modeListener?.call(_currentMode);
+          },
+          icon: Icon(Icons.add_box),
+        ),
+        IconButton(
+          color: _currentMode == FloorBuilderMode.createWalls ? Colors.blueAccent : null,
+          onPressed: () {
+            setState(() => _currentMode = FloorBuilderMode.createWalls);
+            widget.controller.modeListener?.call(_currentMode);
+          },
           icon: Icon(CupertinoIcons.arrow_up_left),
         ),
         IconButton(
-          //TODO: рисуем ноды для маршрутов
-          onPressed: controller.routeNodeCreateModeHandler,
+          color: _currentMode == FloorBuilderMode.createRooms ? Colors.blueAccent : null,
+          onPressed: () {
+            setState(() => _currentMode = FloorBuilderMode.createRooms);
+            widget.controller.modeListener?.call(_currentMode);
+          },
           icon: Icon(Icons.rectangle_outlined),
         ),
-        IconButton(onPressed: controller.routeEdgeCreateModeHandler, icon: Icon(Icons.route)),
-        IconButton(onPressed: () {}, icon: Icon(Icons.data_array_sharp)), //TODO: ставить двери4
-        IconButton(onPressed: () {}, icon: Icon(Icons.layers)), //показ сетки
-        IconButton(onPressed: () {}, icon: Icon(CupertinoIcons.arrow_counterclockwise)), //шаг назад
-        IconButton(onPressed: controller.clearHandler, icon: Icon(Icons.clear)), //отчистить все
+        IconButton(
+          color: _currentMode == FloorBuilderMode.createDoor ? Colors.blueAccent : null,
+          onPressed: () {
+            setState(() => _currentMode = FloorBuilderMode.createDoor);
+            widget.controller.modeListener?.call(_currentMode);
+          },
+          icon: Icon(Icons.data_array_sharp),
+        ),
+        IconButton(onPressed: widget.controller.onSwitchShowingGrid, icon: Icon(Icons.layers)),
+        IconButton(onPressed: () {}, icon: Icon(CupertinoIcons.arrow_counterclockwise)),
+        IconButton(onPressed: widget.controller.onClear, icon: Icon(Icons.clear)),
       ],
     );
   }
 }
 
-class ControlPanelController extends Listenable {
-  ControlPanelController({
-    required this.routeEdgeCreateModeHandler,
-    required this.wallCreateModeHandler,
-    required this.routeNodeCreateModeHandler,
-    required this.clearHandler,
-  });
+class ControlPanelController {
+  ControlPanelController({this.modeListener, this.onClear, this.onSwitchShowingGrid});
 
-  final VoidCallback wallCreateModeHandler;
-  final VoidCallback routeNodeCreateModeHandler;
-  final VoidCallback routeEdgeCreateModeHandler;
-  final VoidCallback clearHandler;
-
-  @override
-  void addListener(VoidCallback listener) {
-    //TODO:
-  }
-
-  @override
-  void removeListener(VoidCallback listener) {
-    //TODO:
-  }
+  final FloorBuilderModeListener? modeListener;
+  final VoidCallback? onClear, onSwitchShowingGrid;
 }

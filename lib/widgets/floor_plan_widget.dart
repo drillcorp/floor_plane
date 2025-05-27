@@ -1,11 +1,14 @@
+import 'package:floor_builder/entities/door.dart';
+import 'package:floor_builder/entities/room.dart';
 import 'package:floor_builder/entities/route_node.dart';
 import 'package:floor_builder/entities/wall.dart';
 import 'package:flutter/material.dart';
 
-class FloorPlan extends StatefulWidget {
+class FloorPlan extends StatelessWidget {
   const FloorPlan({
-    this.routeNodes = const [],
     required this.walls,
+    required this.rooms,
+    this.routeNodes = const [],
     this.color = Colors.black,
     this.strokeWidth = 2,
     super.key,
@@ -14,63 +17,34 @@ class FloorPlan extends StatefulWidget {
   final double strokeWidth;
   final Color color;
   final List<Wall> walls;
+  final List<Room> rooms;
   final List<RouteNode> routeNodes;
 
   @override
-  State<FloorPlan> createState() => _FloorPlanState();
-}
-
-class _FloorPlanState extends State<FloorPlan> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))..forward();
-    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _FloorPlanPainter(
-            strokeWidth: widget.strokeWidth,
-            color: widget.color,
-            walls: widget.walls,
-            nodes: widget.routeNodes,
-          ),
-        );
-      },
+    return CustomPaint(
+      painter: _FloorPlanPainter(strokeWidth: strokeWidth, color: color, walls: walls, nodes: routeNodes, rooms: rooms),
     );
   }
 }
 
 final class _FloorPlanPainter extends CustomPainter {
-  const _FloorPlanPainter({required this.nodes, required this.walls, required this.color, required this.strokeWidth});
+  const _FloorPlanPainter({
+    required this.nodes,
+    required this.walls,
+    required this.color,
+    required this.strokeWidth,
+    required this.rooms,
+  });
 
   final double strokeWidth;
   final Color color;
   final List<Wall> walls;
   final List<RouteNode> nodes;
+  final List<Room> rooms;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paintRouteEdge = Paint()
-      ..color = Colors.red.withAlpha(150)
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 10;
-
     final paintRouteNode = Paint()
       ..color = Colors.blue.withAlpha(100)
       ..style = PaintingStyle.fill;
@@ -80,6 +54,11 @@ final class _FloorPlanPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..color = color;
+
+    for (final room in rooms) {
+      final roomPainter = _RoomPainter(name: room.name, walls: room.rect, door: room.door);
+      roomPainter.paint(canvas, room.rect.size);
+    }
 
     for (final routeNode in nodes) {
       final rect = Rect.fromCenter(center: routeNode.location, width: 20, height: 20);
@@ -98,4 +77,60 @@ final class _FloorPlanPainter extends CustomPainter {
   @override
   bool shouldRepaint(_FloorPlanPainter oldDelegate) =>
       color != oldDelegate.color || strokeWidth != oldDelegate.strokeWidth;
+}
+
+final class _RoomPainter extends CustomPainter {
+  _RoomPainter({required this.name, required this.walls, required this.door});
+
+  final String name;
+  final Rect walls;
+  final Door? door;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = Colors.black
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawRect(walls, paint);
+
+    final textStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 35, color: Colors.black);
+    final text = TextSpan(text: name, style: textStyle);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr, text: text);
+    textPainter.layout(maxWidth: size.width);
+    final metrics = textPainter.computeLineMetrics().first;
+    final textWidth = metrics.width;
+    final textHeight = metrics.height;
+    final testOffset = Offset(size.width / 2 - textWidth / 2, size.height / 2 - textHeight / 2);
+    textPainter.paint(canvas, walls.topLeft + testOffset);
+    if (door case Door door) {
+      paintDoor(canvas, size, door);
+    }
+  }
+
+  void paintDoor(Canvas canvas, Size size, Door door) {
+    final doorPaint = Paint()
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.square
+      ..style = PaintingStyle.stroke
+      ..color = Colors.orange;
+
+    final path = Path();
+    final location = door.location;
+    if (door.isVerticalDirection) {
+      path.moveTo(location.dx, location.dy - 10);
+      path.lineTo(location.dx, location.dy + 10);
+    } else {
+      path.moveTo(location.dx - 10, location.dy);
+      path.lineTo(location.dx + 10, location.dy);
+    }
+
+    canvas.drawPath(path, doorPaint);
+  }
+
+  @override
+  bool shouldRepaint(_RoomPainter oldDelegate) =>
+      walls != oldDelegate.walls || name != oldDelegate.name || door != oldDelegate.door;
 }

@@ -11,7 +11,8 @@ final class AStar {
   //Manhetten heuristic
   double _heuristic(Offset a, Offset b) => (a.dx - b.dx).abs() + (a.dy - b.dy).abs();
 
-  List<Offset> calculateRoute() {
+  Iterable<Offset> calculateRoute() {
+    final Set<RouteNode> visitedNodes = {};
     final fScore = <RouteNode, double>{}; //карта оценочной стоимости
     //Приоритетная очередь будет выстраивать приоритет по оценочной стоимости
     final openSet = PriorityQueue<RouteNode>((a, b) => fScore[a]!.compareTo(fScore[b]!));
@@ -28,11 +29,11 @@ final class AStar {
       final current = openSet.removeFirst();
 
       if (current == end) {
-        return _preparePath(ancestors, current).toList();
+        return _preparePath(ancestors, current).toList().reversed;
       }
 
       for (final neighbor in current.neighbors) {
-        final tentativeG = gScore[current.location]! + 1;
+        final tentativeG = gScore[current.location]! + 20;
 
         if (tentativeG < (gScore[neighbor.location] ?? double.infinity)) {
           ancestors[neighbor] = current;
