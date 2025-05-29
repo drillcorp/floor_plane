@@ -28,6 +28,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final TextEditingController _fromController = TextEditingController();
+  final TextEditingController _toController = TextEditingController();
+
   FocusNode _focusNode = FocusNode();
 
   late final ControlPanelController _controlPanelController;
@@ -70,7 +73,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    //TODO: dispose controller
+    _fromController.dispose();
+    _toController.dispose();
     super.dispose();
   }
 
@@ -167,18 +171,34 @@ class _MyAppState extends State<MyApp> {
             skipTraversal: true,
             canRequestFocus: true,
             child: Scaffold(
+              drawer: Drawer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 30,
+                  children: [
+                    TextField(
+                      controller: _fromController,
+                      decoration: InputDecoration(hint: Text('from')),
+                    ),
+                    TextField(
+                      controller: _toController,
+                      decoration: InputDecoration(hint: Text('to')),
+                    ),
+                  ],
+                ),
+              ),
               appBar: AppBar(
                 actions: [
                   ElevatedButton(
                     onPressed: () {
-                      print('create');
-                      final start = _rooms.first.door;
-                      final end = _rooms.last.door;
+                      final start = _findRoomByName(_fromController.text);
+                      final end = _findRoomByName(_toController.text);
                       if (start != null && end != null) {
-                        final aStar = AStar(start: start, end: end);
+                        final aStar = RoutePathFinder(start: start.door!, end: end.door!);
                         final routePath = aStar.calculateRoute();
-                        print(routePath);
                         setState(() => _routePath = routePath.toList());
+                        _toController.clear();
+                        _fromController.clear();
                       }
                     },
                     child: Center(child: Text('Create path')),
@@ -286,6 +306,14 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Room? _findRoomByName(String name) {
+    for (final room in _rooms) {
+      if (room.name == name) return room;
+    }
+
+    return null;
+  }
+
   void _createRouteNode(TapDownDetails details) {
     final nearestPoint = _findNearestPoint(details.localPosition);
     final node = RouteNode(location: nearestPoint, id: Uuid().v4());
@@ -304,9 +332,10 @@ class _MyAppState extends State<MyApp> {
     double rightDirectionCount = startPoint.dx;
     while (rightDirectionCount <= _sceneWidth) {
       final rightPoint = Offset(rightDirectionCount, startPoint.dy);
+      final result = _findNodeInThisPoint(rightPoint);
+      if (result != null) return result;
       final rightObstacle = _pointsContainsWall(rightPoint);
       if (rightObstacle) return null;
-      final result = _findNodeInThisPoint(rightPoint);
       if (result case RouteNode neighbor) {
         return neighbor;
       }
@@ -319,9 +348,10 @@ class _MyAppState extends State<MyApp> {
     double leftDirectionCount = startPoint.dx;
     while (leftDirectionCount >= 0) {
       final leftPoint = Offset(leftDirectionCount, startPoint.dy);
+      final result = _findNodeInThisPoint(leftPoint);
+      if (result != null) return result;
       final leftObstacle = _pointsContainsWall(leftPoint);
       if (leftObstacle) return null;
-      final result = _findNodeInThisPoint(leftPoint);
       if (result case RouteNode neighbor) {
         return neighbor;
       }
@@ -338,9 +368,10 @@ class _MyAppState extends State<MyApp> {
     double topDirectionCount = startPoint.dy;
     while (topDirectionCount >= 0) {
       final topPoint = Offset(startPoint.dx, topDirectionCount);
+      final result = _findNodeInThisPoint(topPoint);
+      if (result != null) return result;
       final topObstacle = _pointsContainsWall(topPoint);
       if (topObstacle) return null;
-      final result = _findNodeInThisPoint(topPoint);
       if (result case RouteNode neighbor) {
         return neighbor;
       }
@@ -353,9 +384,10 @@ class _MyAppState extends State<MyApp> {
     double bottomDirectionCount = startPoint.dy;
     while (bottomDirectionCount <= _sceneHeight) {
       final bottomPoint = Offset(startPoint.dx, bottomDirectionCount);
+      final result = _findNodeInThisPoint(bottomPoint);
+      if (result != null) return result;
       final topObstacle = _pointsContainsWall(bottomPoint);
       if (topObstacle) return null;
-      final result = _findNodeInThisPoint(bottomPoint);
       if (result case RouteNode neighbor) {
         return neighbor;
       }
@@ -365,6 +397,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   bool _pointsContainsWall(Offset currentPoint) {
+    for (final room in _rooms) {
+      final topRight = room.rect.topRight;
+      final bottomRight = room.rect.bottomRight;
+
+      if ((currentPoint.dx <= bottomRight.dx && currentPoint.dy <= bottomRight.dy) &&
+          (currentPoint.dx >= topRight.dx && currentPoint.dy >= topRight.dy))
+        return true;
+    }
+
     for (final wall in _walls) {
       for (final point in wall.points) {
         if (currentPoint == point) return true;

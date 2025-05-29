@@ -22,7 +22,7 @@ class RouteNode {
       first.neighbors.remove(second);
       first.neighbors.add(this);
       second.neighbors.remove(first);
-      second.neighbors.add(first);
+      second.neighbors.add(this);
       this.neighbors.addAll([first, second]);
       return;
     }

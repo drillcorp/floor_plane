@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:floor_builder/entities/route_node.dart';
 
-final class AStar {
-  AStar({required this.start, required this.end});
+final class RoutePathFinder {
+  RoutePathFinder({required this.start, required this.end});
 
   final RouteNode start, end;
 
@@ -25,8 +25,8 @@ final class AStar {
     openSet.add(start);
 
     while (openSet.isNotEmpty) {
-      print('AStar');
       final current = openSet.removeFirst();
+      if (visitedNodes.contains(current)) continue;
 
       if (current == end) {
         return _preparePath(ancestors, current).toList().reversed;
@@ -41,10 +41,11 @@ final class AStar {
           fScore[neighbor] = tentativeG + _heuristic(neighbor.location, end.location);
         }
 
-        if (!openSet.contains(neighbor)) {
+        if (!openSet.contains(neighbor) && neighbor.neighbors.isNotEmpty) {
           openSet.add(neighbor);
         }
       }
+      visitedNodes.add(current);
     }
 
     return [];
