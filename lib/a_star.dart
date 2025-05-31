@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
-import 'package:floor_builder/entities/route_node.dart';
+import 'package:floor_builder/entities/graph_node.dart';
 
 final class RoutePathFinder {
   RoutePathFinder({required this.start, required this.end});

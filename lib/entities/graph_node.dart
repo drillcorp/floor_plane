@@ -1,11 +1,19 @@
+import 'package:floor_builder/utils/offset_converter.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'graph_node.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.snake)
 class GraphNode {
   GraphNode({required this.id, required this.location, Set<GraphNode>? neighbors}) : neighbors = neighbors ?? {};
 
   final String id;
+  @OffsetConverter()
   final Offset location;
   final Set<GraphNode> neighbors;
+
+  factory GraphNode.fromJson(Map<String, dynamic> json) => _$GraphNodeFromJson(json);
 
   @override
   int get hashCode => Object.hashAll([id, location]);
@@ -39,4 +47,6 @@ class GraphNode {
       return;
     }
   }
+
+  Map<String, dynamic> toJson() => _$GraphNodeToJson(this);
 }

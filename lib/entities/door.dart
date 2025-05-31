@@ -1,7 +1,16 @@
-import 'package:floor_builder/entities/route_node.dart';
+import 'package:floor_builder/entities/graph_node.dart';
+import 'package:floor_builder/utils/offset_converter.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'door.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.snake)
 class Door extends GraphNode {
-  Door({required this.isVerticalDirection, required super.id, required super.location});
+  Door({required super.id, required super.location, required this.isVerticalDirection});
 
   final bool isVerticalDirection;
+
+  factory Door.fromJson(Map<String, dynamic> json) => _$DoorFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DoorToJson(this);
 }
