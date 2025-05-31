@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-typedef FloorBuilderModeListener = void Function(FloorBuilderMode mode);
-
 enum FloorBuilderMode { showing, createRooms, createWalls, createDoor, addNode }
 
 class ControlPanel extends StatefulWidget {
@@ -18,12 +16,6 @@ class _ControlPanelState extends State<ControlPanel> {
   FloorBuilderMode _currentMode = FloorBuilderMode.showing;
 
   @override
-  void initState() {
-    super.initState();
-    widget.controller.modeListener?.call(_currentMode);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -31,14 +23,17 @@ class _ControlPanelState extends State<ControlPanel> {
       children: [
         IconButton(
           color: _currentMode == FloorBuilderMode.showing ? Colors.blueAccent : null,
-          onPressed: () => setState(() => _currentMode = FloorBuilderMode.showing),
+          onPressed: () {
+            setState(() => _currentMode = FloorBuilderMode.showing);
+            widget.controller.value = FloorBuilderMode.showing;
+          },
           icon: Icon(Icons.mouse),
         ),
         IconButton(
           color: _currentMode == FloorBuilderMode.addNode ? Colors.blueAccent : null,
           onPressed: () {
             setState(() => _currentMode = FloorBuilderMode.addNode);
-            widget.controller.modeListener?.call(_currentMode);
+            widget.controller.value = FloorBuilderMode.addNode;
           },
           icon: Icon(Icons.add_box),
         ),
@@ -46,7 +41,7 @@ class _ControlPanelState extends State<ControlPanel> {
           color: _currentMode == FloorBuilderMode.createWalls ? Colors.blueAccent : null,
           onPressed: () {
             setState(() => _currentMode = FloorBuilderMode.createWalls);
-            widget.controller.modeListener?.call(_currentMode);
+            widget.controller.value = FloorBuilderMode.createWalls;
           },
           icon: Icon(CupertinoIcons.arrow_up_left),
         ),
@@ -54,7 +49,7 @@ class _ControlPanelState extends State<ControlPanel> {
           color: _currentMode == FloorBuilderMode.createRooms ? Colors.blueAccent : null,
           onPressed: () {
             setState(() => _currentMode = FloorBuilderMode.createRooms);
-            widget.controller.modeListener?.call(_currentMode);
+            widget.controller.value = FloorBuilderMode.createRooms;
           },
           icon: Icon(Icons.rectangle_outlined),
         ),
@@ -62,7 +57,7 @@ class _ControlPanelState extends State<ControlPanel> {
           color: _currentMode == FloorBuilderMode.createDoor ? Colors.blueAccent : null,
           onPressed: () {
             setState(() => _currentMode = FloorBuilderMode.createDoor);
-            widget.controller.modeListener?.call(_currentMode);
+            widget.controller.value = FloorBuilderMode.createDoor;
           },
           icon: Icon(Icons.data_array_sharp),
         ),
@@ -74,9 +69,8 @@ class _ControlPanelState extends State<ControlPanel> {
   }
 }
 
-class ControlPanelController {
-  ControlPanelController({this.modeListener, this.onClear, this.onSwitchShowingGrid});
+class ControlPanelController extends ValueNotifier<FloorBuilderMode> {
+  ControlPanelController({this.onClear, this.onSwitchShowingGrid}) : super(FloorBuilderMode.showing);
 
-  final FloorBuilderModeListener? modeListener;
   final VoidCallback? onClear, onSwitchShowingGrid;
 }

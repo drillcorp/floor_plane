@@ -1,6 +1,5 @@
 import 'package:floor_builder/entities/door.dart';
 import 'package:floor_builder/entities/room.dart';
-import 'package:floor_builder/entities/route_node.dart';
 import 'package:floor_builder/entities/wall.dart';
 import 'package:flutter/material.dart';
 
@@ -8,7 +7,6 @@ class FloorPlan extends StatelessWidget {
   const FloorPlan({
     required this.walls,
     required this.rooms,
-    this.routeNodes = const [],
     this.color = Colors.black,
     this.strokeWidth = 2,
     super.key,
@@ -18,37 +16,25 @@ class FloorPlan extends StatelessWidget {
   final Color color;
   final List<Wall> walls;
   final List<Room> rooms;
-  final List<GraphNode> routeNodes;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _FloorPlanPainter(strokeWidth: strokeWidth, color: color, walls: walls, nodes: routeNodes, rooms: rooms),
+      painter: _FloorPlanPainter(strokeWidth: strokeWidth, color: color, walls: walls, rooms: rooms),
     );
   }
 }
 
 final class _FloorPlanPainter extends CustomPainter {
-  const _FloorPlanPainter({
-    required this.nodes,
-    required this.walls,
-    required this.color,
-    required this.strokeWidth,
-    required this.rooms,
-  });
+  const _FloorPlanPainter({required this.walls, required this.color, required this.strokeWidth, required this.rooms});
 
   final double strokeWidth;
   final Color color;
   final List<Wall> walls;
-  final List<GraphNode> nodes;
   final List<Room> rooms;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paintRouteNode = Paint()
-      ..color = Colors.blue.withAlpha(100)
-      ..style = PaintingStyle.fill;
-
     final paintWall = Paint()
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
@@ -58,11 +44,6 @@ final class _FloorPlanPainter extends CustomPainter {
     for (final room in rooms) {
       final roomPainter = _RoomPainter(name: room.name, walls: room.rect, door: room.door);
       roomPainter.paint(canvas, room.rect.size);
-    }
-
-    for (final routeNode in nodes) {
-      final rect = Rect.fromCenter(center: routeNode.location, width: 20, height: 20);
-      canvas.drawRect(rect, paintRouteNode);
     }
 
     for (final wall in walls) {
