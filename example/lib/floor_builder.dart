@@ -1,7 +1,10 @@
-import 'dart:math';
+import 'dart:developer';
+import 'dart:io';
+import 'dart:math' hide log;
 
 import 'package:floor_builder/floor_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:uuid/uuid.dart';
 
 ///State contains detailed information about plan
@@ -237,6 +240,27 @@ final class FloorBuilder extends ChangeNotifier {
     final dx = (currentPoint.dx / cellGridSize).round() * cellGridSize;
     final dy = (currentPoint.dy / cellGridSize).round() * cellGridSize;
     return Offset(dx, dy);
+  }
+
+  Future<void> saveToJson() async {
+    try {
+      final floorPlan = Floor(
+        height: _sceneHeight,
+        width: _sceneWidth,
+        floorNumber: '1',
+        building: 'KUBSU C',
+        rooms: state.rooms,
+        walls: state.walls,
+        nodes: state.graphNodes,
+      );
+      final json = floorPlan.toJson().toString();
+      final saveDir = await path_provider.getApplicationDocumentsDirectory();
+      final file = File('${saveDir.path}/test_plan.json');
+      file.openWrite();
+      file.writeAsString(json);
+    } catch (error, stackTrace) {
+      log(error.toString(), stackTrace: stackTrace);
+    }
   }
 
   void _emit(FloorBuilderState newState) {

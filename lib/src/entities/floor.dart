@@ -13,6 +13,8 @@ final class Floor {
     required this.nodes,
     required this.floorNumber,
     required this.building,
+    required this.height,
+    required this.width,
   });
 
   factory Floor.fromJson(Map<String, dynamic> json) => _$FloorFromJson(json);
@@ -22,6 +24,7 @@ final class Floor {
   final List<GraphNode> nodes;
   final String floorNumber;
   final String building;
+  final double height, width;
 
   Map<String, dynamic> toJson() => _$FloorToJson(this);
 
@@ -31,7 +34,11 @@ final class Floor {
     List<GraphNode>? nodes,
     String? floorNumber,
     String? building,
+    double? height,
+    double? width,
   }) => Floor(
+    height: height ?? this.height,
+    width: width ?? this.width,
     rooms: rooms ?? this.rooms,
     walls: walls ?? this.walls,
     nodes: nodes ?? this.nodes,

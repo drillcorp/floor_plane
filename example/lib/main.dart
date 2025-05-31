@@ -108,6 +108,13 @@ class _MyAppState extends State<MyApp> {
             appBar: AppBar(
               actions: [
                 ElevatedButton(
+                  onPressed: _floorBuilder.saveToJson,
+                  child: Center(child: Text('save to JSON')),
+                ),
+
+                const SizedBox(width: 8),
+
+                ElevatedButton(
                   onPressed: _buildRoutePath,
                   child: Center(child: Text('Create path')),
                 ),
