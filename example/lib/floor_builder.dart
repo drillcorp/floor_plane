@@ -1,9 +1,6 @@
 import 'dart:math';
 
-import 'package:floor_builder/entities/door.dart';
-import 'package:floor_builder/entities/graph_node.dart';
-import 'package:floor_builder/entities/room.dart';
-import 'package:floor_builder/entities/wall.dart';
+import 'package:floor_builder/floor_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 

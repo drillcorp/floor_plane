@@ -1,6 +1,6 @@
-import 'package:floor_builder/entities/graph_node.dart';
-import 'package:floor_builder/entities/room.dart';
-import 'package:floor_builder/entities/wall.dart';
+import 'package:floor_builder/src/entities/graph_node.dart';
+import 'package:floor_builder/src/entities/room.dart';
+import 'package:floor_builder/src/entities/wall.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'floor.g.dart';

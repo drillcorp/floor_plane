@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:floor_builder/entities/door.dart';
-import 'package:floor_builder/utils/rect_convertor.dart';
+import 'package:floor_builder/src/entities/door.dart';
+import 'package:floor_builder/src/utils/rect_convertor.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'room.g.dart';

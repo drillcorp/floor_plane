@@ -1,14 +1,16 @@
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
-import 'package:floor_builder/entities/graph_node.dart';
+import 'package:floor_builder/src/entities/graph_node.dart';
 
-final class RoutePathFinder {
-  RoutePathFinder({required this.start, required this.end});
+///This class builds the shortest route from point a [RoutePathCreator.start] to point b [RoutePathCreator.end],
+///is based on the A* algorithm and uses the Manhattan heuristic [_heuristic].
+final class RoutePathCreator {
+  RoutePathCreator({required this.start, required this.end});
 
   final GraphNode start, end;
 
-  //Manhetten heuristic
+  //Manhattan heuristic
   double _heuristic(Offset a, Offset b) => (a.dx - b.dx).abs() + (a.dy - b.dy).abs();
 
   Iterable<Offset> calculateRoute() {

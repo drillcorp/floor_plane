@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:floor_builder/utils/offset_converter.dart';
+import 'package:floor_builder/src/utils/offset_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'wall.g.dart';

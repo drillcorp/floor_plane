@@ -1,5 +1,5 @@
-import 'package:floor_builder/entities/graph_node.dart';
-import 'package:floor_builder/utils/offset_converter.dart';
+import 'package:floor_builder/src/entities/graph_node.dart';
+import 'package:floor_builder/src/utils/offset_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'door.g.dart';
@@ -12,5 +12,6 @@ class Door extends GraphNode {
 
   factory Door.fromJson(Map<String, dynamic> json) => _$DoorFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DoorToJson(this);
 }

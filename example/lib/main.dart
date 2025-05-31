@@ -1,12 +1,4 @@
-import 'package:floor_builder/a_star.dart';
-import 'package:floor_builder/entities/room.dart';
-import 'package:floor_builder/widgets/bakcground_grid.dart';
-import 'package:floor_builder/widgets/door_frame.dart';
-import 'package:floor_builder/widgets/floor_plan.dart';
-import 'package:floor_builder/widgets/line_frame.dart';
-import 'package:floor_builder/widgets/node_frame.dart';
-import 'package:floor_builder/widgets/path_painter.dart';
-import 'package:floor_builder/widgets/room_frame.dart';
+import 'package:floor_builder/floor_builder.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -231,7 +223,7 @@ class _MyAppState extends State<MyApp> {
     final start = _findRoomByName(_fromController.text);
     final end = _findRoomByName(_toController.text);
     if (start != null && end != null) {
-      final aStar = RoutePathFinder(start: start.door!, end: end.door!);
+      final aStar = RoutePathCreator(start: start.door!, end: end.door!);
       final routePath = aStar.calculateRoute();
       setState(() => _routePath = routePath.toList());
       _toController.clear();
