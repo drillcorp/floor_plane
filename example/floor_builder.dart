@@ -7,6 +7,11 @@ import 'package:floor_builder/entities/wall.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+///State contains detailed information about plan
+///[FloorBuilderState.walls]
+///[FloorBuilderState.rooms]
+///[FloorBuilderState.graphNodes]
+///In fact it's a graph presentation
 final class FloorBuilderState {
   FloorBuilderState({this.walls = const [], this.rooms = const [], this.graphNodes = const []});
 
@@ -21,9 +26,16 @@ final class FloorBuilderState {
   );
 }
 
+///This class create your floor plan,
+///it contains state witch contains [FloorBuilderState.state] information about floor plan.
+///It also contains all information about the grid and it's limitations.
+///[FloorBuilder.cellGridSize]
+///[FloorBuilder.sceneWidth]
+///[FloorBuilder.sceneHeight]
 final class FloorBuilder extends ChangeNotifier {
   FloorBuilder({required this.cellGridSize});
 
+  ///Size of one cell
   final double cellGridSize;
 
   double _sceneWidth = 0;
@@ -45,6 +57,8 @@ final class FloorBuilder extends ChangeNotifier {
 
   void clearState() => _emit(FloorBuilderState());
 
+  ///adds an intersection point for the vertices of the graphs,
+  ///is the vertex of the graph
   void createGraphNode(Offset point) {
     final graphNodes = [...state.graphNodes];
     final nearestPoint = findNearestPoint(point);
@@ -57,6 +71,7 @@ final class FloorBuilder extends ChangeNotifier {
     _emit(state.copyWith(graphNodes: graphNodes));
   }
 
+  ///final horizontal neighbors in left and right direction, start from current point
   (GraphNode? left, GraphNode? right) _findHorizontalNeighbors(Offset startPoint) {
     return (_findLeftNeighbor(startPoint), _findRightNeighbor(startPoint));
   }
@@ -93,6 +108,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
+  ///final vertical neighbors in left and right direction, start from current point
   (GraphNode? top, GraphNode? bottom) _findVerticalVerticals(Offset startPoint) {
     return (_findTopNeighbor(startPoint), _findBottomNeighbor(startPoint));
   }
