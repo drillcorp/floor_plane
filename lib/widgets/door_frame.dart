@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-class DoorWidget extends StatelessWidget {
-  const DoorWidget({required this.location, this.isVertical = true, this.length = 12, super.key});
+///The representation of the door before it is attached to the room.
+class DoorFrame extends StatelessWidget {
+  const DoorFrame({required this.location, this.isVertical = true, this.length = 12, super.key});
 
   final Offset location;
   final bool isVertical;

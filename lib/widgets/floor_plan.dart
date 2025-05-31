@@ -3,46 +3,78 @@ import 'package:floor_builder/entities/room.dart';
 import 'package:floor_builder/entities/wall.dart';
 import 'package:flutter/material.dart';
 
+///A widget that builds a complete room plan.
 class FloorPlan extends StatelessWidget {
   const FloorPlan({
     required this.walls,
     required this.rooms,
-    this.color = Colors.black,
-    this.strokeWidth = 2,
+    this.wallStrokeWidth = 2,
+    this.roomStrokeWidth = 2,
+    this.wallsColor,
+    this.roomColor,
+    this.doorColor,
+    this.roomTextStyle,
     super.key,
   });
 
-  final double strokeWidth;
-  final Color color;
   final List<Wall> walls;
   final List<Room> rooms;
+  final TextStyle? roomTextStyle;
+  final double wallStrokeWidth, roomStrokeWidth;
+  final Color? wallsColor, roomColor, doorColor;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _FloorPlanPainter(strokeWidth: strokeWidth, color: color, walls: walls, rooms: rooms),
+      painter: _FloorPlanPainter(
+        walls: walls,
+        rooms: rooms,
+        roomStrokeWidth: roomStrokeWidth,
+        wallStrokeWidth: wallStrokeWidth,
+        roomColor: roomColor,
+        wallColor: wallsColor,
+        doorColor: doorColor,
+        roomTextStyle: roomTextStyle,
+      ),
     );
   }
 }
 
 final class _FloorPlanPainter extends CustomPainter {
-  const _FloorPlanPainter({required this.walls, required this.color, required this.strokeWidth, required this.rooms});
+  const _FloorPlanPainter({
+    required this.walls,
+    required this.wallStrokeWidth,
+    required this.roomStrokeWidth,
+    required this.rooms,
+    this.roomColor,
+    this.wallColor,
+    this.doorColor,
+    this.roomTextStyle,
+  });
 
-  final double strokeWidth;
-  final Color color;
   final List<Wall> walls;
   final List<Room> rooms;
+  final double wallStrokeWidth, roomStrokeWidth;
+  final Color? roomColor, wallColor, doorColor;
+  final TextStyle? roomTextStyle;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paintWall = Paint()
-      ..strokeWidth = strokeWidth
+      ..strokeWidth = wallStrokeWidth
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
-      ..color = color;
+      ..color = wallColor ?? Colors.black;
 
     for (final room in rooms) {
-      final roomPainter = _RoomPainter(name: room.name, walls: room.rect, door: room.door);
+      final roomPainter = _RoomPainter(
+        name: room.name,
+        walls: room.rect,
+        door: room.door,
+        roomColor: roomColor,
+        doorColor: doorColor,
+        roomTitleStyle: roomTextStyle,
+      );
       roomPainter.paint(canvas, room.rect.size);
     }
 
@@ -57,15 +89,31 @@ final class _FloorPlanPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FloorPlanPainter oldDelegate) =>
-      color != oldDelegate.color || strokeWidth != oldDelegate.strokeWidth;
+      wallColor != oldDelegate.wallColor ||
+      wallStrokeWidth != oldDelegate.wallStrokeWidth ||
+      roomStrokeWidth != oldDelegate.roomStrokeWidth ||
+      roomColor != oldDelegate.roomColor ||
+      doorColor != oldDelegate.doorColor ||
+      walls != oldDelegate.walls ||
+      rooms != oldDelegate.rooms ||
+      roomTextStyle != oldDelegate.roomTextStyle;
 }
 
 final class _RoomPainter extends CustomPainter {
-  _RoomPainter({required this.name, required this.walls, required this.door});
+  _RoomPainter({
+    required this.name,
+    required this.walls,
+    this.door,
+    this.doorColor,
+    this.roomColor,
+    this.roomTitleStyle,
+  });
 
   final String name;
   final Rect walls;
   final Door? door;
+  final Color? roomColor, doorColor;
+  final TextStyle? roomTitleStyle;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -77,7 +125,7 @@ final class _RoomPainter extends CustomPainter {
 
     canvas.drawRect(walls, paint);
 
-    final textStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 35, color: Colors.black);
+    final textStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 25, color: Colors.black);
     final text = TextSpan(text: name, style: textStyle);
     final textPainter = TextPainter(textDirection: TextDirection.ltr, text: text);
     textPainter.layout(maxWidth: size.width);

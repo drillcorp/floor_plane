@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+///Widget for building a route from a starting point to a destination.
 class PathPainter extends StatefulWidget {
   const PathPainter({required this.path, super.key});
 

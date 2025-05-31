@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+///A widget that shows the wall before it is attached to the plan.
 class LineFrame extends StatelessWidget {
   const LineFrame({super.key, required this.start, required this.end});
 

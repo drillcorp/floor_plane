@@ -1,8 +1,8 @@
 import 'package:floor_builder/a_star.dart';
 import 'package:floor_builder/entities/room.dart';
 import 'package:floor_builder/widgets/bakcground_grid.dart';
-import 'package:floor_builder/widgets/door_widget.dart';
-import 'package:floor_builder/widgets/floor_plan_widget.dart';
+import 'package:floor_builder/widgets/door_frame.dart';
+import 'package:floor_builder/widgets/floor_plan.dart';
 import 'package:floor_builder/widgets/line_frame.dart';
 import 'package:floor_builder/widgets/node_frame.dart';
 import 'package:floor_builder/widgets/path_painter.dart';
@@ -188,7 +188,7 @@ class _MyAppState extends State<MyApp> {
                               FloorPlan(walls: _floorBuilder.state.walls, rooms: _floorBuilder.state.rooms),
 
                               if (_builderMode == FloorBuilderMode.createDoor && _updatePosition != null)
-                                DoorWidget(location: _updatePosition!, isVertical: _isVerticalDoor),
+                                DoorFrame(location: _updatePosition!, isVertical: _isVerticalDoor),
                               if (_routePath.isNotEmpty) PathPainter(path: _routePath),
                             ],
                           ),

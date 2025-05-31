@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+///Widget for drawing graph intersection points.
 class NodeFrame extends StatelessWidget {
   const NodeFrame({required this.point, super.key});
 

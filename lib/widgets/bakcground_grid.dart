@@ -2,27 +2,30 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+///Grid representation for the convenience of building a plan.
 class BackgroundGrid extends StatelessWidget {
-  const BackgroundGrid({super.key, required this.cellSize});
+  const BackgroundGrid({required this.cellSize, this.gridColor, super.key});
 
   final double cellSize;
+  final Color? gridColor;
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _BackgroundGridPainter(cellSize));
+    return CustomPaint(painter: _BackgroundGridPainter(cellSize, gridColor));
   }
 }
 
 final class _BackgroundGridPainter extends CustomPainter {
-  _BackgroundGridPainter(this.cellSize);
+  _BackgroundGridPainter(this.cellSize, this.gridColor);
 
   final double cellSize;
+  final Color? gridColor;
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint gridPain = Paint()
       ..strokeWidth = 1
-      ..color = Colors.black12;
+      ..color = gridColor ?? Colors.black12;
 
     final maxDimension = max(size.height, size.width);
 

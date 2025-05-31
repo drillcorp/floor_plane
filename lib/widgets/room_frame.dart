@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+///A widget for displaying a room before it is attached to the plan.
 class RoomFrame extends StatelessWidget {
   const RoomFrame({super.key, required this.rect});
 
