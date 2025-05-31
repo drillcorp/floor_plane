@@ -18,7 +18,7 @@ class FloorPlan extends StatelessWidget {
   final Color color;
   final List<Wall> walls;
   final List<Room> rooms;
-  final List<RouteNode> routeNodes;
+  final List<GraphNode> routeNodes;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ final class _FloorPlanPainter extends CustomPainter {
   final double strokeWidth;
   final Color color;
   final List<Wall> walls;
-  final List<RouteNode> nodes;
+  final List<GraphNode> nodes;
   final List<Room> rooms;
 
   @override

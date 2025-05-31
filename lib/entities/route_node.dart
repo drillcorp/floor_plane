@@ -1,24 +1,24 @@
 import 'package:flutter/cupertino.dart';
 
-class RouteNode {
-  RouteNode({required this.id, required this.location, Set<RouteNode>? neighbors}) : neighbors = neighbors ?? {};
+class GraphNode {
+  GraphNode({required this.id, required this.location, Set<GraphNode>? neighbors}) : neighbors = neighbors ?? {};
 
   final String id;
   final Offset location;
-  final Set<RouteNode> neighbors;
+  final Set<GraphNode> neighbors;
 
   @override
   int get hashCode => Object.hashAll([id, location]);
 
   @override
   bool operator ==(Object other) =>
-      other is RouteNode && location == other.location && id == other.id && neighbors == other.neighbors;
+      other is GraphNode && location == other.location && id == other.id && neighbors == other.neighbors;
 
-  RouteNode copyWith({Offset? location, Set<RouteNode>? neighbors}) =>
-      RouteNode(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
+  GraphNode copyWith({Offset? location, Set<GraphNode>? neighbors}) =>
+      GraphNode(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
 
-  void updateNeighbors((RouteNode? first, RouteNode? second) neighbors) {
-    if (neighbors case (final RouteNode first, final RouteNode second)) {
+  void updateNeighbors((GraphNode? first, GraphNode? second) neighbors) {
+    if (neighbors case (final GraphNode first, final GraphNode second)) {
       first.neighbors.remove(second);
       first.neighbors.add(this);
       second.neighbors.remove(first);

@@ -6,17 +6,17 @@ import 'package:floor_builder/entities/route_node.dart';
 final class RoutePathFinder {
   RoutePathFinder({required this.start, required this.end});
 
-  final RouteNode start, end;
+  final GraphNode start, end;
 
   //Manhetten heuristic
   double _heuristic(Offset a, Offset b) => (a.dx - b.dx).abs() + (a.dy - b.dy).abs();
 
   Iterable<Offset> calculateRoute() {
-    final Set<RouteNode> visitedNodes = {};
-    final fScore = <RouteNode, double>{}; //карта оценочной стоимости
+    final Set<GraphNode> visitedNodes = {};
+    final fScore = <GraphNode, double>{}; //карта оценочной стоимости
     //Приоритетная очередь будет выстраивать приоритет по оценочной стоимости
-    final openSet = PriorityQueue<RouteNode>((a, b) => fScore[a]!.compareTo(fScore[b]!));
-    final ancestors = <RouteNode, RouteNode>{};
+    final openSet = PriorityQueue<GraphNode>((a, b) => fScore[a]!.compareTo(fScore[b]!));
+    final ancestors = <GraphNode, GraphNode>{};
     final gScore = <Offset, double>{}; //фактическое расстояние от старта
 
     gScore[start.location] = 0;
@@ -51,7 +51,7 @@ final class RoutePathFinder {
     return [];
   }
 
-  Iterable<Offset> _preparePath(Map<RouteNode, RouteNode> ancestors, RouteNode current) sync* {
+  Iterable<Offset> _preparePath(Map<GraphNode, GraphNode> ancestors, GraphNode current) sync* {
     yield current.location;
     while (ancestors.containsKey(current)) {
       current = ancestors[current]!;

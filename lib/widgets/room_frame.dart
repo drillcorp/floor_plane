@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class RoomLayout extends StatelessWidget {
-  const RoomLayout({super.key, required this.rect});
+class RoomFrame extends StatelessWidget {
+  const RoomFrame({super.key, required this.rect});
 
   final Rect rect;
 
