@@ -1,13 +1,11 @@
-import 'package:floor_builder/src/entities/graph_node.dart';
-import 'package:floor_builder/src/entities/room.dart';
-import 'package:floor_builder/src/entities/wall.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:floor_builder/src/entities/floor_dto.dart';
+import 'package:floor_builder/src/models/graph_node.dart';
+import 'package:floor_builder/src/models/room.dart';
+import 'package:floor_builder/src/models/wall.dart';
 
-part 'floor.g.dart';
-
-@JsonSerializable(fieldRename: FieldRename.snake)
 final class Floor {
   Floor({
+    required this.id,
     required this.rooms,
     required this.walls,
     required this.nodes,
@@ -17,16 +15,11 @@ final class Floor {
     required this.width,
   });
 
-  factory Floor.fromJson(Map<String, dynamic> json) => _$FloorFromJson(json);
-
+  final String id, floorNumber, building;
+  final double height, width;
   final List<Room> rooms;
   final List<Wall> walls;
   final List<GraphNode> nodes;
-  final String floorNumber;
-  final String building;
-  final double height, width;
-
-  Map<String, dynamic> toJson() => _$FloorToJson(this);
 
   Floor copyWith({
     List<Room>? rooms,
@@ -37,6 +30,7 @@ final class Floor {
     double? height,
     double? width,
   }) => Floor(
+    id: id,
     height: height ?? this.height,
     width: width ?? this.width,
     rooms: rooms ?? this.rooms,
@@ -44,5 +38,16 @@ final class Floor {
     nodes: nodes ?? this.nodes,
     floorNumber: floorNumber ?? this.floorNumber,
     building: building ?? this.building,
+  );
+
+  FloorDto toEntity() => FloorDto(
+    id: id,
+    rooms: rooms.map((room) => room.toEntity()),
+    walls: walls.map((wall) => wall.toEntity()),
+    nodes: nodes.map((node) => node.toEntity()),
+    floorNumber: floorNumber,
+    building: building,
+    height: height,
+    width: width,
   );
 }

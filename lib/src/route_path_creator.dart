@@ -1,7 +1,8 @@
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
-import 'package:floor_builder/src/entities/graph_node.dart';
+
+import 'models/graph_node.dart';
 
 ///This class builds the shortest route from point a [RoutePathCreator.start] to point b [RoutePathCreator.end],
 ///is based on the A* algorithm and uses the Manhattan heuristic [_heuristic].

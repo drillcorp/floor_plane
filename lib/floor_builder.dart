@@ -1,11 +1,17 @@
 library;
 
-//Entities
-export 'src/entities/door.dart';
-export 'src/entities/floor.dart';
-export 'src/entities/graph_node.dart';
-export 'src/entities/room.dart';
-export 'src/entities/wall.dart';
+//entities
+export 'src/entities/door_dto.dart';
+export 'src/entities/floor_dto.dart';
+export 'src/entities/graph_node_dto.dart';
+export 'src/entities/room_dto.dart';
+export 'src/entities/wall_dto.dart';
+//Models
+export 'src/models/door.dart';
+export 'src/models/floor.dart';
+export 'src/models/graph_node.dart';
+export 'src/models/room.dart';
+export 'src/models/wall.dart';
 //RouteCreator
 export 'src/route_path_creator.dart';
 //Widgets

@@ -245,14 +245,15 @@ final class FloorBuilder extends ChangeNotifier {
   Future<void> saveToJson() async {
     try {
       final floorPlan = Floor(
+        id: Uuid().v4(),
         height: _sceneHeight,
         width: _sceneWidth,
         floorNumber: '1',
         building: 'KUBSU C',
         rooms: state.rooms,
         walls: state.walls,
-        nodes: state.graphNodes,
-      );
+        nodes: [...state.graphNodes, ...state.rooms.where((room) => room.door != null).map((room) => room.door!)],
+      ).toEntity();
       final json = floorPlan.toJson().toString();
       final saveDir = await path_provider.getApplicationDocumentsDirectory();
       final file = File('${saveDir.path}/test_plan.json');

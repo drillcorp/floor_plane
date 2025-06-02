@@ -1,6 +1,6 @@
-import 'package:floor_builder/src/entities/door.dart';
-import 'package:floor_builder/src/entities/room.dart';
-import 'package:floor_builder/src/entities/wall.dart';
+import 'package:floor_builder/src/models/door.dart';
+import 'package:floor_builder/src/models/room.dart';
+import 'package:floor_builder/src/models/wall.dart';
 import 'package:flutter/material.dart';
 
 ///A widget that builds a complete room plan.
