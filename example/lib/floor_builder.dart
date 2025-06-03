@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:math' hide log;
@@ -244,7 +245,7 @@ final class FloorBuilder extends ChangeNotifier {
 
   Future<void> saveToJson() async {
     try {
-      final floorPlan = Floor(
+      final floor = Floor(
         id: Uuid().v4(),
         height: _sceneHeight,
         width: _sceneWidth,
@@ -254,7 +255,8 @@ final class FloorBuilder extends ChangeNotifier {
         walls: state.walls,
         nodes: [...state.graphNodes, ...state.rooms.where((room) => room.door != null).map((room) => room.door!)],
       ).toEntity();
-      final json = floorPlan.toJson().toString();
+      final buildingPlan = [floor.toJson(), floor.toJson()];
+      final json = jsonEncode(buildingPlan);
       final saveDir = await path_provider.getApplicationDocumentsDirectory();
       final file = File('${saveDir.path}/test_plan.json');
       file.openWrite();

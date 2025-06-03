@@ -44,7 +44,7 @@ final class Floor {
     id: id,
     rooms: rooms.map((room) => room.toEntity()),
     walls: walls.map((wall) => wall.toEntity()),
-    nodes: nodes.map((node) => node.toEntity()),
+    nodes: {for (final item in nodes) item.id: item.toEntity().toJson()},
     floorNumber: floorNumber,
     building: building,
     height: height,
