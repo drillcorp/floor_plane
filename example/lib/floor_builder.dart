@@ -18,13 +18,14 @@ final class FloorBuilderState {
 
   final List<Wall> walls;
   final List<Room> rooms;
-  final List<GraphNode> graphNodes;
+  final List<RoutIntersection> graphNodes;
 
-  FloorBuilderState copyWith({List<Wall>? walls, List<Room>? rooms, List<GraphNode>? graphNodes}) => FloorBuilderState(
-    walls: walls ?? this.walls,
-    rooms: rooms ?? this.rooms,
-    graphNodes: graphNodes ?? this.graphNodes,
-  );
+  FloorBuilderState copyWith({List<Wall>? walls, List<Room>? rooms, List<RoutIntersection>? graphNodes}) =>
+      FloorBuilderState(
+        walls: walls ?? this.walls,
+        rooms: rooms ?? this.rooms,
+        graphNodes: graphNodes ?? this.graphNodes,
+      );
 }
 
 ///This class create your floor plan,
@@ -63,7 +64,7 @@ final class FloorBuilder extends ChangeNotifier {
   void createGraphNode(Offset point) {
     final graphNodes = [...state.graphNodes];
     final nearestPoint = findNearestPoint(point);
-    final node = GraphNode(location: nearestPoint, id: Uuid().v4());
+    final node = RoutIntersection(location: nearestPoint, id: Uuid().v4());
     final horizontals = _findHorizontalNeighbors(node.location);
     final verticals = _findVerticalVerticals(node.location);
     node.updateNeighbors(horizontals);
@@ -73,11 +74,11 @@ final class FloorBuilder extends ChangeNotifier {
   }
 
   ///final horizontal neighbors in left and right direction, start from current point
-  (GraphNode? left, GraphNode? right) _findHorizontalNeighbors(Offset startPoint) {
+  (RouteNode? left, RouteNode? right) _findHorizontalNeighbors(Offset startPoint) {
     return (_findLeftNeighbor(startPoint), _findRightNeighbor(startPoint));
   }
 
-  GraphNode? _findRightNeighbor(Offset startPoint) {
+  RouteNode? _findRightNeighbor(Offset startPoint) {
     double rightDirectionCount = startPoint.dx;
     while (rightDirectionCount <= _sceneWidth) {
       final rightPoint = Offset(rightDirectionCount, startPoint.dy);
@@ -85,7 +86,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final rightObstacle = _pointsContainsWall(rightPoint);
       if (rightObstacle) return null;
-      if (result case GraphNode neighbor) {
+      if (result case RoutIntersection neighbor) {
         return neighbor;
       }
       rightDirectionCount += cellGridSize;
@@ -93,7 +94,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
-  GraphNode? _findLeftNeighbor(Offset startPoint) {
+  RouteNode? _findLeftNeighbor(Offset startPoint) {
     double leftDirectionCount = startPoint.dx;
     while (leftDirectionCount >= 0) {
       final leftPoint = Offset(leftDirectionCount, startPoint.dy);
@@ -101,7 +102,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final leftObstacle = _pointsContainsWall(leftPoint);
       if (leftObstacle) return null;
-      if (result case GraphNode neighbor) {
+      if (result case RouteNode neighbor) {
         return neighbor;
       }
       leftDirectionCount -= cellGridSize;
@@ -110,11 +111,11 @@ final class FloorBuilder extends ChangeNotifier {
   }
 
   ///final vertical neighbors in left and right direction, start from current point
-  (GraphNode? top, GraphNode? bottom) _findVerticalVerticals(Offset startPoint) {
+  (RouteNode? top, RouteNode? bottom) _findVerticalVerticals(Offset startPoint) {
     return (_findTopNeighbor(startPoint), _findBottomNeighbor(startPoint));
   }
 
-  GraphNode? _findTopNeighbor(Offset startPoint) {
+  RouteNode? _findTopNeighbor(Offset startPoint) {
     double topDirectionCount = startPoint.dy;
     while (topDirectionCount >= 0) {
       final topPoint = Offset(startPoint.dx, topDirectionCount);
@@ -122,7 +123,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final topObstacle = _pointsContainsWall(topPoint);
       if (topObstacle) return null;
-      if (result case GraphNode neighbor) {
+      if (result case RouteNode neighbor) {
         return neighbor;
       }
       topDirectionCount -= cellGridSize;
@@ -130,7 +131,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
-  GraphNode? _findBottomNeighbor(Offset startPoint) {
+  RouteNode? _findBottomNeighbor(Offset startPoint) {
     double bottomDirectionCount = startPoint.dy;
     while (bottomDirectionCount <= _sceneHeight) {
       final bottomPoint = Offset(startPoint.dx, bottomDirectionCount);
@@ -138,7 +139,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final topObstacle = _pointsContainsWall(bottomPoint);
       if (topObstacle) return null;
-      if (result case GraphNode neighbor) {
+      if (result case RoutIntersection neighbor) {
         return neighbor;
       }
       bottomDirectionCount += cellGridSize;
@@ -146,7 +147,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
-  GraphNode? _findNodeInThisPoint(Offset point) {
+  RouteNode? _findNodeInThisPoint(Offset point) {
     final nodes = [...state.rooms.map((element) => element.door), ...state.graphNodes];
     for (final node in nodes) {
       if (node?.location == point) {
@@ -253,7 +254,7 @@ final class FloorBuilder extends ChangeNotifier {
         building: 'KUBSU C',
         rooms: state.rooms,
         walls: state.walls,
-        nodes: [...state.graphNodes, ...state.rooms.where((room) => room.door != null).map((room) => room.door!)],
+        intersections: state.graphNodes,
       ).toEntity();
       final buildingPlan = [floor.toJson(), floor.toJson()];
       final json = jsonEncode(buildingPlan);

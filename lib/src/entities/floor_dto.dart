@@ -13,7 +13,8 @@ final class FloorDto {
     required this.building,
     required this.height,
     required this.width,
-    this.nodes = const {},
+    required this.intersections,
+    required this.doors,
   });
 
   factory FloorDto.fromJson(Map<String, dynamic> json) => _$FloorDtoFromJson(json);
@@ -22,8 +23,8 @@ final class FloorDto {
   final double height, width;
   final Iterable<RoomDto> rooms;
   final Iterable<WallDto> walls;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic> nodes;
+  final Iterable<RouteIntersectionDto> intersections;
+  final Iterable<DoorDto?> doors;
 
   Map<String, dynamic> toJson() => _$FloorDtoToJson(this);
 }

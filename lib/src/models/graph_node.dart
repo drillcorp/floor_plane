@@ -1,34 +1,32 @@
 import 'dart:ui';
 
-import 'package:floor_builder/src/entities/graph_node_dto.dart';
+import 'package:floor_builder/floor_builder.dart';
 
-class GraphNode {
-  GraphNode({required this.id, required this.location, Set<GraphNode>? neighbors}) : neighbors = neighbors ?? {};
+abstract class RouteNode {
+  RouteNode({required this.id, required this.location, Set<RouteNode>? neighbors}) : neighbors = neighbors ?? {};
 
   final String id;
   final Offset location;
-  final Set<GraphNode> neighbors;
+  final Set<RouteNode> neighbors;
 
-  factory GraphNode.fromEntity(GraphNode entity) {
-    return GraphNode(
-      id: entity.id,
-      location: entity.location,
-      neighbors: entity.neighbors.map((element) => GraphNode.fromEntity(element)).toSet(),
-    );
-  }
+  T toEntity<T>();
+}
+
+class RoutIntersection extends RouteNode {
+  RoutIntersection({required super.id, required super.location, super.neighbors});
 
   @override
   int get hashCode => Object.hashAll([id, location]);
 
   @override
   bool operator ==(Object other) =>
-      other is GraphNode && location == other.location && id == other.id && neighbors == other.neighbors;
+      other is RoutIntersection && location == other.location && id == other.id && neighbors == other.neighbors;
 
-  GraphNode copyWith({Offset? location, Set<GraphNode>? neighbors}) =>
-      GraphNode(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
+  RoutIntersection copyWith({Offset? location, Set<RouteNode>? neighbors}) =>
+      RoutIntersection(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
 
-  void updateNeighbors((GraphNode? first, GraphNode? second) neighbors) {
-    if (neighbors case (final GraphNode first, final GraphNode second)) {
+  void updateNeighbors((RouteNode? first, RouteNode? second) neighbors) {
+    if (neighbors case (final RouteNode first, final RouteNode second)) {
       first.neighbors.remove(second);
       first.neighbors.add(this);
       second.neighbors.remove(first);
@@ -50,6 +48,7 @@ class GraphNode {
     }
   }
 
-  GraphNodeDto toEntity() =>
-      GraphNodeDto(id: id, location: location, neighbors: neighbors.map((element) => element.id));
+  @override
+  T toEntity<T>() =>
+      RouteIntersectionDto(id: id, location: location, neighbors: neighbors.map((element) => element.id)) as T;
 }

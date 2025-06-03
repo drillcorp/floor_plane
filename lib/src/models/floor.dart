@@ -1,14 +1,11 @@
-import 'package:floor_builder/src/entities/floor_dto.dart';
-import 'package:floor_builder/src/models/graph_node.dart';
-import 'package:floor_builder/src/models/room.dart';
-import 'package:floor_builder/src/models/wall.dart';
+import 'package:floor_builder/floor_builder.dart';
 
 final class Floor {
   Floor({
     required this.id,
     required this.rooms,
     required this.walls,
-    required this.nodes,
+    required this.intersections,
     required this.floorNumber,
     required this.building,
     required this.height,
@@ -19,12 +16,12 @@ final class Floor {
   final double height, width;
   final List<Room> rooms;
   final List<Wall> walls;
-  final List<GraphNode> nodes;
+  final List<RoutIntersection> intersections;
 
   Floor copyWith({
     List<Room>? rooms,
     List<Wall>? walls,
-    List<GraphNode>? nodes,
+    List<RoutIntersection>? nodes,
     String? floorNumber,
     String? building,
     double? height,
@@ -35,7 +32,7 @@ final class Floor {
     width: width ?? this.width,
     rooms: rooms ?? this.rooms,
     walls: walls ?? this.walls,
-    nodes: nodes ?? this.nodes,
+    intersections: nodes ?? this.intersections,
     floorNumber: floorNumber ?? this.floorNumber,
     building: building ?? this.building,
   );
@@ -44,7 +41,8 @@ final class Floor {
     id: id,
     rooms: rooms.map((room) => room.toEntity()),
     walls: walls.map((wall) => wall.toEntity()),
-    nodes: {for (final item in nodes) item.id: item.toEntity().toJson()},
+    intersections: intersections.map((element) => element.toEntity()),
+    doors: rooms.map((element) => element.door?.toEntity<DoorDto>()),
     floorNumber: floorNumber,
     building: building,
     height: height,

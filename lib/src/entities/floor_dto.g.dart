@@ -8,13 +8,22 @@ part of 'floor_dto.dart';
 
 FloorDto _$FloorDtoFromJson(Map<String, dynamic> json) => FloorDto(
   id: json['id'] as String,
-  rooms: (json['rooms'] as List<dynamic>).map((e) => RoomDto.fromJson(e as Map<String, dynamic>)),
-  walls: (json['walls'] as List<dynamic>).map((e) => WallDto.fromJson(e as Map<String, dynamic>)),
+  rooms: (json['rooms'] as List<dynamic>).map(
+    (e) => RoomDto.fromJson(e as Map<String, dynamic>),
+  ),
+  walls: (json['walls'] as List<dynamic>).map(
+    (e) => WallDto.fromJson(e as Map<String, dynamic>),
+  ),
   floorNumber: json['floor_number'] as String,
   building: json['building'] as String,
   height: (json['height'] as num).toDouble(),
   width: (json['width'] as num).toDouble(),
-  nodes: json['nodes'],
+  intersections: (json['intersections'] as List<dynamic>).map(
+    (e) => RouteIntersectionDto.fromJson(e as Map<String, dynamic>),
+  ),
+  doors: (json['doors'] as List<dynamic>).map(
+    (e) => e == null ? null : DoorDto.fromJson(e as Map<String, dynamic>),
+  ),
 );
 
 Map<String, dynamic> _$FloorDtoToJson(FloorDto instance) => <String, dynamic>{
@@ -25,4 +34,6 @@ Map<String, dynamic> _$FloorDtoToJson(FloorDto instance) => <String, dynamic>{
   'width': instance.width,
   'rooms': instance.rooms.map((e) => e.toJson()).toList(),
   'walls': instance.walls.map((e) => e.toJson()).toList(),
+  'intersections': instance.intersections.map((e) => e.toJson()).toList(),
+  'doors': instance.doors.map((e) => e?.toJson()).toList(),
 };

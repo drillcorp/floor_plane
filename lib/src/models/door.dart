@@ -1,6 +1,6 @@
 import 'package:floor_builder/floor_builder.dart';
 
-class Door extends GraphNode {
+class Door extends RouteNode {
   Door({required super.id, required super.location, required this.isVerticalDirection});
 
   final bool isVerticalDirection;
@@ -9,5 +9,7 @@ class Door extends GraphNode {
       Door(id: entity.id, location: entity.location, isVerticalDirection: entity.isVerticalDirection);
 
   @override
-  GraphNodeDto toEntity() => DoorDto(id: id, location: location, isVerticalDirection: isVerticalDirection);
+  T toEntity<T>() {
+    return DoorDto(id: id, location: location, isVerticalDirection: isVerticalDirection) as T;
+  }
 }
