@@ -23,7 +23,7 @@ final class FloorDto {
   final Iterable<RoomDto> rooms;
   final Iterable<WallDto> walls;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, Map<String, dynamic>> nodes;
+  final Map<String, dynamic> nodes;
 
   Map<String, dynamic> toJson() => _$FloorDtoToJson(this);
 }

@@ -5,6 +5,9 @@ class Door extends GraphNode {
 
   final bool isVerticalDirection;
 
+  factory Door.fromEntity(DoorDto entity) =>
+      Door(id: entity.id, location: entity.location, isVerticalDirection: entity.isVerticalDirection);
+
   @override
   GraphNodeDto toEntity() => DoorDto(id: id, location: location, isVerticalDirection: isVerticalDirection);
 }
