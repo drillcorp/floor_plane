@@ -13,5 +13,5 @@ final class OffsetConverter extends JsonConverter<Offset, Map<String, dynamic>> 
   }
 
   @override
-  Map<String, dynamic> toJson(Offset point) => {'dx': point.dy, 'dy': point.dy};
+  Map<String, dynamic> toJson(Offset point) => {'dx': point.dx, 'dy': point.dy};
 }
