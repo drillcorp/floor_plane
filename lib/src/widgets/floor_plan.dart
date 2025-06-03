@@ -1,6 +1,4 @@
-import 'package:floor_builder/src/models/door.dart';
-import 'package:floor_builder/src/models/room.dart';
-import 'package:floor_builder/src/models/wall.dart';
+import 'package:floor_builder/floor_builder.dart';
 import 'package:flutter/material.dart';
 
 ///A widget that builds a complete room plan.
@@ -111,7 +109,7 @@ final class _RoomPainter extends CustomPainter {
 
   final String name;
   final Rect walls;
-  final Door? door;
+  final GraphNode? door;
   final Color? roomColor, doorColor;
   final TextStyle? roomTitleStyle;
 
@@ -134,12 +132,12 @@ final class _RoomPainter extends CustomPainter {
     final textHeight = metrics.height;
     final testOffset = Offset(size.width / 2 - textWidth / 2, size.height / 2 - textHeight / 2);
     textPainter.paint(canvas, walls.topLeft + testOffset);
-    if (door case Door door) {
-      paintDoor(canvas, size, door);
+    if (door != null && door!.isVerticalDoor != null) {
+      paintDoor(canvas, size, door!);
     }
   }
 
-  void paintDoor(Canvas canvas, Size size, Door door) {
+  void paintDoor(Canvas canvas, Size size, GraphNode door) {
     final doorPaint = Paint()
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.square
@@ -148,7 +146,7 @@ final class _RoomPainter extends CustomPainter {
 
     final path = Path();
     final location = door.location;
-    if (door.isVerticalDirection) {
+    if (door.isVerticalDoor!) {
       path.moveTo(location.dx, location.dy - 10);
       path.lineTo(location.dx, location.dy + 10);
     } else {

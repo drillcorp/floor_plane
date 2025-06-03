@@ -2,31 +2,27 @@ import 'dart:ui';
 
 import 'package:floor_builder/floor_builder.dart';
 
-abstract class RouteNode {
-  RouteNode({required this.id, required this.location, Set<RouteNode>? neighbors}) : neighbors = neighbors ?? {};
+class GraphNode {
+  GraphNode({required this.id, required this.location, this.isVerticalDoor, Set<GraphNode>? neighbors})
+    : neighbors = neighbors ?? {};
 
   final String id;
   final Offset location;
-  final Set<RouteNode> neighbors;
-
-  T toEntity<T>();
-}
-
-class RoutIntersection extends RouteNode {
-  RoutIntersection({required super.id, required super.location, super.neighbors});
+  final bool? isVerticalDoor;
+  final Set<GraphNode> neighbors;
 
   @override
   int get hashCode => Object.hashAll([id, location]);
 
   @override
   bool operator ==(Object other) =>
-      other is RoutIntersection && location == other.location && id == other.id && neighbors == other.neighbors;
+      other is GraphNode && location == other.location && id == other.id && neighbors == other.neighbors;
 
-  RoutIntersection copyWith({Offset? location, Set<RouteNode>? neighbors}) =>
-      RoutIntersection(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
+  GraphNode copyWith({Offset? location, Set<GraphNode>? neighbors}) =>
+      GraphNode(id: id, location: location ?? this.location, neighbors: neighbors ?? this.neighbors);
 
-  void updateNeighbors((RouteNode? first, RouteNode? second) neighbors) {
-    if (neighbors case (final RouteNode first, final RouteNode second)) {
+  void updateNeighbors((GraphNode? first, GraphNode? second) neighbors) {
+    if (neighbors case (final GraphNode first, final GraphNode second)) {
       first.neighbors.remove(second);
       first.neighbors.add(this);
       second.neighbors.remove(first);
@@ -48,7 +44,10 @@ class RoutIntersection extends RouteNode {
     }
   }
 
-  @override
-  T toEntity<T>() =>
-      RouteIntersectionDto(id: id, location: location, neighbors: neighbors.map((element) => element.id)) as T;
+  GraphNodeDto toEntity() => GraphNodeDto(
+    id: id,
+    location: location,
+    neighbors: neighbors.map((element) => element.id),
+    isVerticalDoor: isVerticalDoor,
+  );
 }

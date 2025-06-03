@@ -13,8 +13,7 @@ final class FloorDto {
     required this.building,
     required this.height,
     required this.width,
-    required this.intersections,
-    required this.doors,
+    required this.nodes,
   });
 
   factory FloorDto.fromJson(Map<String, dynamic> json) => _$FloorDtoFromJson(json);
@@ -23,8 +22,7 @@ final class FloorDto {
   final double height, width;
   final Iterable<RoomDto> rooms;
   final Iterable<WallDto> walls;
-  final Iterable<RouteIntersectionDto> intersections;
-  final Iterable<DoorDto?> doors;
+  final Iterable<GraphNodeDto> nodes;
 
   Map<String, dynamic> toJson() => _$FloorDtoToJson(this);
 }

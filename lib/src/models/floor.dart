@@ -5,7 +5,7 @@ final class Floor {
     required this.id,
     required this.rooms,
     required this.walls,
-    required this.intersections,
+    required this.nodes,
     required this.floorNumber,
     required this.building,
     required this.height,
@@ -16,12 +16,12 @@ final class Floor {
   final double height, width;
   final List<Room> rooms;
   final List<Wall> walls;
-  final List<RoutIntersection> intersections;
+  final List<GraphNode> nodes;
 
   Floor copyWith({
     List<Room>? rooms,
     List<Wall>? walls,
-    List<RoutIntersection>? nodes,
+    List<GraphNode>? nodes,
     String? floorNumber,
     String? building,
     double? height,
@@ -32,7 +32,7 @@ final class Floor {
     width: width ?? this.width,
     rooms: rooms ?? this.rooms,
     walls: walls ?? this.walls,
-    intersections: nodes ?? this.intersections,
+    nodes: nodes ?? this.nodes,
     floorNumber: floorNumber ?? this.floorNumber,
     building: building ?? this.building,
   );
@@ -41,8 +41,7 @@ final class Floor {
     id: id,
     rooms: rooms.map((room) => room.toEntity()),
     walls: walls.map((wall) => wall.toEntity()),
-    intersections: intersections.map((element) => element.toEntity()),
-    doors: rooms.map((element) => element.door?.toEntity<DoorDto>()),
+    nodes: nodes.map((element) => element.toEntity()),
     floorNumber: floorNumber,
     building: building,
     height: height,

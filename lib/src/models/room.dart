@@ -8,7 +8,7 @@ class Room {
   final String id;
   final String name;
   final Rect rect;
-  final Door? door;
+  final GraphNode? door;
 
   @override
   int get hashCode => Object.hashAll([id, name, door]);
@@ -17,7 +17,7 @@ class Room {
   operator ==(Object other) =>
       other is Room && other.id == id && other.name == name && other.door == door && other.rect == rect;
 
-  Room copyWith({String? id, String? name, Rect? rect, Door? door}) =>
+  Room copyWith({String? id, String? name, Rect? rect, GraphNode? door}) =>
       Room(id: id ?? this.id, name: name ?? this.name, rect: rect ?? this.rect, door: door ?? this.door);
 
   RoomDto toEntity() => RoomDto(id: id, name: name, rect: rect, doorId: door?.id);

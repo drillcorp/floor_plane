@@ -18,11 +18,8 @@ FloorDto _$FloorDtoFromJson(Map<String, dynamic> json) => FloorDto(
   building: json['building'] as String,
   height: (json['height'] as num).toDouble(),
   width: (json['width'] as num).toDouble(),
-  intersections: (json['intersections'] as List<dynamic>).map(
-    (e) => RouteIntersectionDto.fromJson(e as Map<String, dynamic>),
-  ),
-  doors: (json['doors'] as List<dynamic>).map(
-    (e) => e == null ? null : DoorDto.fromJson(e as Map<String, dynamic>),
+  nodes: (json['nodes'] as List<dynamic>).map(
+    (e) => GraphNodeDto.fromJson(e as Map<String, dynamic>),
   ),
 );
 
@@ -34,6 +31,5 @@ Map<String, dynamic> _$FloorDtoToJson(FloorDto instance) => <String, dynamic>{
   'width': instance.width,
   'rooms': instance.rooms.map((e) => e.toJson()).toList(),
   'walls': instance.walls.map((e) => e.toJson()).toList(),
-  'intersections': instance.intersections.map((e) => e.toJson()).toList(),
-  'doors': instance.doors.map((e) => e?.toJson()).toList(),
+  'nodes': instance.nodes.map((e) => e.toJson()).toList(),
 };

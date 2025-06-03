@@ -6,20 +6,19 @@ part of 'graph_node_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RouteIntersectionDto _$RouteIntersectionDtoFromJson(
-  Map<String, dynamic> json,
-) => RouteIntersectionDto(
+GraphNodeDto _$GraphNodeDtoFromJson(Map<String, dynamic> json) => GraphNodeDto(
   id: json['id'] as String,
   location: const OffsetConverter().fromJson(
     json['location'] as Map<String, dynamic>,
   ),
+  isVerticalDoor: json['is_vertical_door'] as bool?,
   neighbors: (json['neighbors'] as List<dynamic>?)?.map((e) => e as String),
 );
 
-Map<String, dynamic> _$RouteIntersectionDtoToJson(
-  RouteIntersectionDto instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'location': const OffsetConverter().toJson(instance.location),
-  'neighbors': instance.neighbors.toList(),
-};
+Map<String, dynamic> _$GraphNodeDtoToJson(GraphNodeDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'location': const OffsetConverter().toJson(instance.location),
+      'neighbors': instance.neighbors.toList(),
+      'is_vertical_door': instance.isVerticalDoor,
+    };

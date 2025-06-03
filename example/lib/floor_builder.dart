@@ -18,14 +18,13 @@ final class FloorBuilderState {
 
   final List<Wall> walls;
   final List<Room> rooms;
-  final List<RoutIntersection> graphNodes;
+  final List<GraphNode> graphNodes;
 
-  FloorBuilderState copyWith({List<Wall>? walls, List<Room>? rooms, List<RoutIntersection>? graphNodes}) =>
-      FloorBuilderState(
-        walls: walls ?? this.walls,
-        rooms: rooms ?? this.rooms,
-        graphNodes: graphNodes ?? this.graphNodes,
-      );
+  FloorBuilderState copyWith({List<Wall>? walls, List<Room>? rooms, List<GraphNode>? graphNodes}) => FloorBuilderState(
+    walls: walls ?? this.walls,
+    rooms: rooms ?? this.rooms,
+    graphNodes: graphNodes ?? this.graphNodes,
+  );
 }
 
 ///This class create your floor plan,
@@ -64,7 +63,7 @@ final class FloorBuilder extends ChangeNotifier {
   void createGraphNode(Offset point) {
     final graphNodes = [...state.graphNodes];
     final nearestPoint = findNearestPoint(point);
-    final node = RoutIntersection(location: nearestPoint, id: Uuid().v4());
+    final node = GraphNode(location: nearestPoint, id: Uuid().v4());
     final horizontals = _findHorizontalNeighbors(node.location);
     final verticals = _findVerticalVerticals(node.location);
     node.updateNeighbors(horizontals);
@@ -74,11 +73,11 @@ final class FloorBuilder extends ChangeNotifier {
   }
 
   ///final horizontal neighbors in left and right direction, start from current point
-  (RouteNode? left, RouteNode? right) _findHorizontalNeighbors(Offset startPoint) {
+  (GraphNode? left, GraphNode? right) _findHorizontalNeighbors(Offset startPoint) {
     return (_findLeftNeighbor(startPoint), _findRightNeighbor(startPoint));
   }
 
-  RouteNode? _findRightNeighbor(Offset startPoint) {
+  GraphNode? _findRightNeighbor(Offset startPoint) {
     double rightDirectionCount = startPoint.dx;
     while (rightDirectionCount <= _sceneWidth) {
       final rightPoint = Offset(rightDirectionCount, startPoint.dy);
@@ -86,7 +85,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final rightObstacle = _pointsContainsWall(rightPoint);
       if (rightObstacle) return null;
-      if (result case RoutIntersection neighbor) {
+      if (result case GraphNode neighbor) {
         return neighbor;
       }
       rightDirectionCount += cellGridSize;
@@ -94,7 +93,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
-  RouteNode? _findLeftNeighbor(Offset startPoint) {
+  GraphNode? _findLeftNeighbor(Offset startPoint) {
     double leftDirectionCount = startPoint.dx;
     while (leftDirectionCount >= 0) {
       final leftPoint = Offset(leftDirectionCount, startPoint.dy);
@@ -102,7 +101,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final leftObstacle = _pointsContainsWall(leftPoint);
       if (leftObstacle) return null;
-      if (result case RouteNode neighbor) {
+      if (result case GraphNode neighbor) {
         return neighbor;
       }
       leftDirectionCount -= cellGridSize;
@@ -111,11 +110,11 @@ final class FloorBuilder extends ChangeNotifier {
   }
 
   ///final vertical neighbors in left and right direction, start from current point
-  (RouteNode? top, RouteNode? bottom) _findVerticalVerticals(Offset startPoint) {
+  (GraphNode? top, GraphNode? bottom) _findVerticalVerticals(Offset startPoint) {
     return (_findTopNeighbor(startPoint), _findBottomNeighbor(startPoint));
   }
 
-  RouteNode? _findTopNeighbor(Offset startPoint) {
+  GraphNode? _findTopNeighbor(Offset startPoint) {
     double topDirectionCount = startPoint.dy;
     while (topDirectionCount >= 0) {
       final topPoint = Offset(startPoint.dx, topDirectionCount);
@@ -123,7 +122,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final topObstacle = _pointsContainsWall(topPoint);
       if (topObstacle) return null;
-      if (result case RouteNode neighbor) {
+      if (result case GraphNode neighbor) {
         return neighbor;
       }
       topDirectionCount -= cellGridSize;
@@ -131,7 +130,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
-  RouteNode? _findBottomNeighbor(Offset startPoint) {
+  GraphNode? _findBottomNeighbor(Offset startPoint) {
     double bottomDirectionCount = startPoint.dy;
     while (bottomDirectionCount <= _sceneHeight) {
       final bottomPoint = Offset(startPoint.dx, bottomDirectionCount);
@@ -139,7 +138,7 @@ final class FloorBuilder extends ChangeNotifier {
       if (result != null) return result;
       final topObstacle = _pointsContainsWall(bottomPoint);
       if (topObstacle) return null;
-      if (result case RoutIntersection neighbor) {
+      if (result case GraphNode neighbor) {
         return neighbor;
       }
       bottomDirectionCount += cellGridSize;
@@ -147,7 +146,7 @@ final class FloorBuilder extends ChangeNotifier {
     return null;
   }
 
-  RouteNode? _findNodeInThisPoint(Offset point) {
+  GraphNode? _findNodeInThisPoint(Offset point) {
     final nodes = [...state.rooms.map((element) => element.door), ...state.graphNodes];
     for (final node in nodes) {
       if (node?.location == point) {
@@ -207,7 +206,7 @@ final class FloorBuilder extends ChangeNotifier {
     final rooms = [...state.rooms];
     if (roomResult.index != null && roomResult.room != null) {
       rooms[roomResult.index!] = roomResult.room!.copyWith(
-        door: Door(isVerticalDirection: isVertical, id: Uuid().v4(), location: nearestPoint),
+        door: GraphNode(isVerticalDoor: isVertical, id: Uuid().v4(), location: nearestPoint),
       );
     }
     _emit(state.copyWith(rooms: rooms));
@@ -254,7 +253,7 @@ final class FloorBuilder extends ChangeNotifier {
         building: 'KUBSU C',
         rooms: state.rooms,
         walls: state.walls,
-        intersections: state.graphNodes,
+        nodes: [...state.graphNodes, ...state.rooms.where((room) => room.door != null).map((room) => room.door!)],
       ).toEntity();
       final buildingPlan = [floor.toJson(), floor.toJson()];
       final json = jsonEncode(buildingPlan);
