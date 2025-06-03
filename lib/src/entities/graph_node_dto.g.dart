@@ -12,13 +12,15 @@ GraphNodeDto _$GraphNodeDtoFromJson(Map<String, dynamic> json) => GraphNodeDto(
     json['location'] as Map<String, dynamic>,
   ),
   isVerticalDoor: json['is_vertical_door'] as bool?,
-  neighbors: (json['neighbors'] as List<dynamic>?)?.map((e) => e as String),
+  neighborIds: (json['neighbor_ids'] as List<dynamic>?)?.map(
+    (e) => e as String,
+  ),
 );
 
 Map<String, dynamic> _$GraphNodeDtoToJson(GraphNodeDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'location': const OffsetConverter().toJson(instance.location),
-      'neighbors': instance.neighbors.toList(),
+      'neighbor_ids': instance.neighborIds.toList(),
       'is_vertical_door': instance.isVerticalDoor,
     };

@@ -47,7 +47,7 @@ class GraphNode {
   GraphNodeDto toEntity() => GraphNodeDto(
     id: id,
     location: location,
-    neighbors: neighbors.map((element) => element.id),
+    neighborIds: neighbors.map((element) => element.id),
     isVerticalDoor: isVerticalDoor,
   );
 }
