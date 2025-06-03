@@ -9,6 +9,14 @@ class GraphNode {
   final Offset location;
   final Set<GraphNode> neighbors;
 
+  factory GraphNode.fromEntity(GraphNode entity) {
+    return GraphNode(
+      id: entity.id,
+      location: entity.location,
+      neighbors: entity.neighbors.map((element) => GraphNode.fromEntity(element)).toSet(),
+    );
+  }
+
   @override
   int get hashCode => Object.hashAll([id, location]);
 
